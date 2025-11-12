@@ -1,0 +1,49 @@
+site_name: Claude Dev Insights
+site_description: Comprehensive developer analytics and productivity insights for Claude Code
+site_url: https://kanopi.github.io/claude-dev-insights/
+repo_url: https://github.com/kanopi/claude-dev-insights
+repo_name: kanopi/claude-dev-insights
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quick-start.md
+  - Features:
+    - Session Analytics: features/session-analytics.md
+    - Security Scanner: features/security-scanner.md
+    - Cost Guard: features/cost-guard.md
+    - Quality Automator: features/quality-automator.md
+  - Configuration:
+    - Overview: configuration/overview.md
+    - Security Patterns: configuration/security-patterns.md
+    - Cost Thresholds: configuration/cost-thresholds.md
+    - Quality Rules: configuration/quality-rules.md
+  - Google Sheets:
+    - Setup: google-sheets/setup.md
+    - Usage: google-sheets/usage.md
+  - Usage Examples:
+    - View Analytics: usage/view-analytics.md
+    - Security Events: usage/security-events.md
+    - Quality Reports: usage/quality-reports.md
+  - Contributing: contributing.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc:
+      permalink: true
