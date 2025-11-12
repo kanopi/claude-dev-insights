@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start/session-start.sh",
+            "description": "Log session start context and development environment"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-end/session-end.sh",
+            "description": "Log session statistics to CSV and optionally sync to Google Sheets",
+            "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/pre-tool-use.sh",
+            "description": "Security scanner and cost guard - blocks sensitive file access and dangerous commands"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/post-tool-use.sh",
+            "description": "Quality automator - auto-run linters and validate code quality"
+          }
+        ]
+      }
+    ]
+  }
+}
