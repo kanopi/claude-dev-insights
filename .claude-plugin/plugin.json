@@ -1,11 +1,13 @@
 {
   "name": "claude-dev-insights",
   "version": "1.0.1",
-  "description": "Comprehensive developer analytics and productivity insights for Claude Code. Automatically tracks session analytics, enforces security policies, guards against cost overruns, and ensures code quality with 4 intelligent hooks: SessionEnd, SessionStart, PreToolUse, and PostToolUse.",
-  "author": "Kanopi Studios",
+  "description": "Developer analytics and productivity insights for Claude Code. Automatically tracks session analytics, enforces security policies, guards against cost overruns, and ensures code quality with 4 intelligent hooks: SessionEnd, SessionStart, PreToolUse, and PostToolUse.",
+  "author": {
+    "name": "Kanopi Studios",
+    "email": "code@kanopi.com",
+    "url": "https://kanopi.com"
+  },
   "license": "GPL-2.0-or-later",
-  "repository": "https://github.com/kanopi/claude-dev-insights",
-  "homepage": "https://kanopi.github.io/claude-dev-insights/",
   "keywords": [
     "analytics",
     "session-tracking",
@@ -15,5 +17,7 @@
     "productivity",
     "developer-insights",
     "hooks"
-  ]
+  ],
+  "repository": "https://github.com/kanopi/claude-dev-insights",
+  "homepage": "https://kanopi.github.io/claude-dev-insights/"
 }
