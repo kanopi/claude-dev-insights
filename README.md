@@ -119,7 +119,7 @@ All hooks are configurable via JSON files in `config/`:
 ```
 
 **Configuration location:**
-- Plugin users: `~/.config/claude/plugins/claude-dev-insights/config/`
+- Plugin users: `~/.claude/plugins/cache/claude-dev-insights/config/`
 - Project install: `$CLAUDE_PROJECT_DIR/.claude/dev-insights/config/`
 
 ---
@@ -188,12 +188,12 @@ All hooks are configurable via JSON files in `config/`:
 
 2. **Run interactive setup:**
    ```bash
-   python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup
+   python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup
    ```
 
 3. **Test connection:**
    ```bash
-   python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test
+   python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test
    ```
 
 **Full setup guide:** [`hooks/session-end/README.md`](hooks/session-end/README.md)
@@ -215,7 +215,7 @@ awk -F, 'NR>1 {sum+=$14} END {print "Total: $"sum}' ~/.claude/session-logs/sessi
 awk -F, 'NR>1 {cost[$3]+=$14} END {for(p in cost) print p": $"cost[p]}' ~/.claude/session-logs/sessions.csv
 
 # Generate full report
-python3 ~/.config/claude/plugins/claude-dev-insights/lib/analytics.py markdown
+python3 ~/.claude/plugins/cache/claude-dev-insights/lib/analytics.py markdown
 ```
 
 ### View Security Events
@@ -264,7 +264,7 @@ Edit `hooks/hooks.json` and remove unwanted hooks, or set them to empty arrays:
 ### Disable Google Sheets Sync
 
 ```bash
-python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --disable
+python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --disable
 ```
 
 ### Disable Plugin Entirely

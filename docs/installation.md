@@ -62,7 +62,7 @@ git clone https://github.com/kanopi/claude-dev-insights.git
 cd claude-dev-insights
 
 # Create symlink to Claude Code plugins directory
-ln -s $(pwd) ~/.config/claude/plugins/claude-dev-insights
+ln -s $(pwd) ~/.claude/plugins/cache/claude-dev-insights
 
 # Enable the plugin
 claude plugins enable claude-dev-insights
@@ -135,12 +135,12 @@ If you want to sync session data to Google Sheets:
 
 2. **Run interactive setup:**
    ```bash
-   python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup
+   python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup
    ```
 
 3. **Test connection:**
    ```bash
-   python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test
+   python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test
    ```
 
 [Full Google Sheets setup guide →](../google-sheets/setup.md)
@@ -152,7 +152,7 @@ If you want to sync session data to Google Sheets:
 The plugin creates the following structure:
 
 ```
-~/.config/claude/plugins/claude-dev-insights/
+~/.claude/plugins/cache/claude-dev-insights/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── hooks/
@@ -233,7 +233,7 @@ cat ~/.claude/debug/*.log
 Verify file permissions:
 
 ```bash
-ls -la ~/.config/claude/plugins/claude-dev-insights/hooks/
+ls -la ~/.claude/plugins/cache/claude-dev-insights/hooks/
 ```
 
 All `.sh` files should be executable (`-rwxr-xr-x`).

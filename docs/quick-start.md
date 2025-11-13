@@ -135,10 +135,10 @@ Use the Python analytics library:
 
 ```bash
 # JSON report
-python3 ~/.config/claude/plugins/claude-dev-insights/lib/analytics.py json
+python3 ~/.claude/plugins/cache/claude-dev-insights/lib/analytics.py json
 
 # Markdown report
-python3 ~/.config/claude/plugins/claude-dev-insights/lib/analytics.py markdown
+python3 ~/.claude/plugins/cache/claude-dev-insights/lib/analytics.py markdown
 ```
 
 Example output:
@@ -176,17 +176,17 @@ All hooks are configurable via JSON files.
 
 ```bash
 # View default patterns
-cat ~/.config/claude/plugins/claude-dev-insights/config/security-patterns.json
+cat ~/.claude/plugins/cache/claude-dev-insights/config/security-patterns.json
 
 # Edit to customize
-vim ~/.config/claude/plugins/claude-dev-insights/config/security-patterns.json
+vim ~/.claude/plugins/cache/claude-dev-insights/config/security-patterns.json
 ```
 
 **Cost thresholds:**
 
 ```bash
 # Set your budget
-vim ~/.config/claude/plugins/claude-dev-insights/config/cost-thresholds.json
+vim ~/.claude/plugins/cache/claude-dev-insights/config/cost-thresholds.json
 ```
 
 Example:
@@ -203,7 +203,7 @@ Example:
 
 ```bash
 # Configure linters
-vim ~/.config/claude/plugins/claude-dev-insights/config/quality-rules.json
+vim ~/.claude/plugins/cache/claude-dev-insights/config/quality-rules.json
 ```
 
 [Full configuration guide →](configuration/overview.md)
@@ -221,12 +221,12 @@ Sync your data to Google Sheets for team collaboration:
 
 2. **Run setup:**
    ```bash
-   python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup
+   python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup
    ```
 
 3. **Test:**
    ```bash
-   python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test
+   python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test
    ```
 
 Once configured, every session automatically syncs:
@@ -281,7 +281,7 @@ grep "COMMIT_INVALID" ~/.claude/session-logs/quality.log
 
 **Disable specific hooks:**
 
-Edit `~/.config/claude/plugins/claude-dev-insights/hooks/hooks.json` and remove hooks:
+Edit `~/.claude/plugins/cache/claude-dev-insights/hooks/hooks.json` and remove hooks:
 
 ```json
 {
@@ -297,7 +297,7 @@ Edit `~/.config/claude/plugins/claude-dev-insights/hooks/hooks.json` and remove 
 **Disable Google Sheets sync:**
 
 ```bash
-python3 ~/.config/claude/plugins/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --disable
+python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --disable
 ```
 
 **Disable plugin entirely:**
