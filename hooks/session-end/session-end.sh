@@ -74,20 +74,50 @@ if [ $tool_call_count -gt 0 ]; then
 fi
 api_time_seconds=$((total_api_time / 1000))
 
-# Git context
+# Git context from transcript
 git_branch=$(jq -r 'select(.gitBranch != null) | .gitBranch' "$transcript_path" | head -n 1)
 version=$(jq -r 'select(.version != null) | .version' "$transcript_path" | head -n 1)
 
 # Project name from working directory
 project_name=$(basename "$cwd")
 
+# Read session start context if available
+start_context_file="$log_dir/.session-start-${session_id}"
+start_user=""
+start_ticket=""
+start_cms_type=""
+start_env_type=""
+start_deps_count=""
+start_uncommitted=""
+start_git_branch=""
+start_source=""
+
+if [ -f "$start_context_file" ]; then
+    start_user=$(jq -r '.user // ""' "$start_context_file")
+    start_ticket=$(jq -r '.ticket_number // ""' "$start_context_file")
+    start_cms_type=$(jq -r '.cms_type // ""' "$start_context_file")
+    start_env_type=$(jq -r '.environment_type // ""' "$start_context_file")
+    start_deps_count=$(jq -r '.dependencies_count // ""' "$start_context_file")
+    start_uncommitted=$(jq -r '.uncommitted_changes // ""' "$start_context_file")
+    start_git_branch=$(jq -r '.git_branch // ""' "$start_context_file")
+    start_source=$(jq -r '.source // ""' "$start_context_file")
+
+    # Use session start git_branch as fallback if transcript doesn't have it
+    if [ -z "$git_branch" ] && [ -n "$start_git_branch" ]; then
+        git_branch="$start_git_branch"
+    fi
+
+    # Clean up the temp file after reading
+    rm -f "$start_context_file"
+fi
+
 # Create CSV header if file doesn't exist
 if [ ! -f "$csv_file" ]; then
-    echo "timestamp,session_id,project,summary,end_reason,duration_seconds,user_messages,assistant_messages,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,total_cost,tool_calls,api_time_seconds,avg_call_time_ms,tools_used,git_branch,claude_version,permission_mode" > "$csv_file"
+    echo "timestamp,session_id,user,ticket_number,project,cms_type,environment_type,dependencies_count,uncommitted_changes,source,summary,end_reason,duration_seconds,user_messages,assistant_messages,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,total_cost,tool_calls,api_time_seconds,avg_call_time_ms,tools_used,git_branch,claude_version,permission_mode" > "$csv_file"
 fi
 
 # Append session data as CSV row
-echo "$end_datetime,$session_id,$project_name,\"$summary\",$reason,$duration_seconds,$user_messages,$assistant_messages,$input_tokens,$output_tokens,$cache_read,$cache_write,$total_tokens,$total_cost,$tool_call_count,$api_time_seconds,$avg_api_time,\"$tool_list\",$git_branch,$version,$permission_mode" >> "$csv_file"
+echo "$end_datetime,$session_id,$start_user,$start_ticket,$project_name,$start_cms_type,$start_env_type,$start_deps_count,$start_uncommitted,$start_source,\"$summary\",$reason,$duration_seconds,$user_messages,$assistant_messages,$input_tokens,$output_tokens,$cache_read,$cache_write,$total_tokens,$total_cost,$tool_call_count,$api_time_seconds,$avg_api_time,\"$tool_list\",$git_branch,$version,$permission_mode" >> "$csv_file"
 
 # Sync to Google Sheets (if configured)
 # Use CLAUDE_PLUGIN_ROOT if available (when called from plugin), otherwise fall back to CLAUDE_PROJECT_DIR

@@ -52,15 +52,30 @@ fi
 # Project name
 project_name=$(basename "$cwd")
 
+# User name from git config or system username
+user_name=$(git config --global user.name 2>/dev/null || echo "$USER")
+# Sanitize for CSV (remove commas and quotes)
+user_name=$(echo "$user_name" | sed 's/,/-/g' | sed 's/"//g')
+
 # Output session context to Claude (via CLAUDE_ENV_FILE if needed)
 # This makes the context available to Claude in the session
 {
     echo "🚀 Session Started: $start_datetime"
+    echo "   User: $user_name"
     echo "   Project: $project_name | CMS: $cms_type | Environment: $environment_type"
     echo "   Git Branch: $git_branch | Uncommitted Changes: $uncommitted_changes"
     echo "   Dependencies: $deps_count"
     echo ""
 } >&2
+
+# Prompt for optional ticket number
+ticket_number=""
+if [ -t 0 ]; then
+    # Only prompt if running interactively (stdin is a terminal)
+    echo "Enter ticket number (optional, press Enter to skip): " >&2
+    read -r ticket_number
+    ticket_number=$(echo "$ticket_number" | sed 's/,/-/g' | sed 's/"//g' | xargs)
+fi
 
 # Store start context in a temp file for SessionEnd to reference
 # This allows SessionEnd to calculate accurate duration and include start context
@@ -69,6 +84,8 @@ cat > "$start_context_file" <<EOF
 {
   "session_id": "$session_id",
   "start_timestamp": "$start_datetime",
+  "user": "$user_name",
+  "ticket_number": "$ticket_number",
   "project": "$project_name",
   "cms_type": "$cms_type",
   "environment_type": "$environment_type",
