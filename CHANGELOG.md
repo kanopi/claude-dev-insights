@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-11-13
+
+### Fixed
+- **Bash Syntax Error** - Fixed regex pattern escaping in `hooks/post-tool-use/post-tool-use.sh` line 193 that caused hook failures with syntax errors on every tool use
+- **Documentation Paths** - Updated all path references from `~/.config/claude/plugins/` to correct marketplace installation path `~/.claude/plugins/cache/` across:
+  - README.md (5 instances)
+  - docs/installation.md (5 instances)
+  - docs/quick-start.md (7 instances)
+- **Google Sheets Script Paths** - Corrected setup and test command paths in `hooks/session-end/sync-to-google-sheets.py` to match actual marketplace installation location
+
+### Changed
+- All documentation now consistently references the correct marketplace plugin path
+- Google Sheets setup output now provides accurate test command
+
 ## [1.0.0] - 2025-11-12
 
 ### Added

@@ -190,7 +190,7 @@ case "$tool_name" in
 
         if [[ "$command" == *"git commit"* ]]; then
             # Extract commit message
-            if [[ "$command" =~ -m[[:space:]]+"([^"]+)" ]] || [[ "$command" =~ -m[[:space:]]+'([^']+)' ]]; then
+            if [[ "$command" =~ -m[[:space:]]+\"([^\"]+)\" ]] || [[ "$command" =~ -m[[:space:]]+\'([^\']+)\' ]]; then
                 commit_message="${BASH_REMATCH[1]}"
                 validate_commit_message "$commit_message"
             fi

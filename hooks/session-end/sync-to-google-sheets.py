@@ -19,7 +19,7 @@ def load_config():
     """Load Google Sheets configuration."""
     if not CONFIG_FILE.exists():
         print(f"❌ Configuration not found: {CONFIG_FILE}", file=sys.stderr)
-        print("   Run setup: python3 .claude/hooks/sync-to-google-sheets.py --setup", file=sys.stderr)
+        print("   Run setup: python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --setup", file=sys.stderr)
         return None
 
     with open(CONFIG_FILE) as f:
@@ -70,7 +70,7 @@ def setup_config():
 
     print(f"\n✅ Configuration saved to: {CONFIG_FILE}")
     print("\nTest the integration:")
-    print("  python3 .claude/hooks/sync-to-google-sheets.py --test")
+    print("  python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --test")
 
 
 def sync_to_google_sheets(csv_path):
