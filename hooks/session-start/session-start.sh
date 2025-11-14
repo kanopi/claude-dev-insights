@@ -57,25 +57,17 @@ user_name=$(git config --global user.name 2>/dev/null || echo "$USER")
 # Sanitize for CSV (remove commas and quotes)
 user_name=$(echo "$user_name" | sed 's/,/-/g' | sed 's/"//g')
 
-# Output session context to Claude (via CLAUDE_ENV_FILE if needed)
-# This makes the context available to Claude in the session
+# Log session context (SessionStart hooks run asynchronously and output isn't visible to user)
 {
     echo "🚀 Session Started: $start_datetime"
     echo "   User: $user_name"
     echo "   Project: $project_name | CMS: $cms_type | Environment: $environment_type"
     echo "   Git Branch: $git_branch | Uncommitted Changes: $uncommitted_changes"
     echo "   Dependencies: $deps_count"
-    echo ""
 } >&2
 
-# Prompt for optional ticket number
+# Ticket number will be set by UserPromptSubmit hook or /ticket command
 ticket_number=""
-if [ -t 1 ]; then
-    # Only prompt if stdout is a terminal (user can interact)
-    echo "Enter ticket number (optional, press Enter to skip): " >&2
-    read -r ticket_number < /dev/tty
-    ticket_number=$(echo "$ticket_number" | sed 's/,/-/g' | sed 's/"//g' | xargs)
-fi
 
 # Store start context in a temp file for SessionEnd to reference
 # This allows SessionEnd to calculate accurate duration and include start context

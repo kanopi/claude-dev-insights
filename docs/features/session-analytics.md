@@ -10,6 +10,45 @@ The Session Analytics feature uses two hooks:
 
 All data is saved to `~/.claude/session-logs/sessions.csv` for easy analysis.
 
+## Setting Ticket Numbers
+
+To associate sessions with specific tickets or issues, you have two options:
+
+### Option 1: Automatic Detection (Recommended)
+
+Simply mention the ticket number in your first message and it will be automatically detected:
+
+```
+Working on JIRA-1234 - need to fix the login bug
+```
+
+Supported patterns: `JIRA-123`, `GH-456`, `PROJ-789`, `#123`, etc.
+
+### Option 2: /ticket Slash Command
+
+Use the `/ticket` command to explicitly set one or more ticket numbers:
+
+```bash
+/ticket JIRA-1234
+```
+
+You can add multiple tickets in a single command:
+
+```bash
+/ticket JIRA-1234 JIRA-5678
+```
+
+Or add tickets incrementally throughout the session:
+
+```bash
+/ticket JIRA-1234
+# ... work on first ticket ...
+/ticket JIRA-5678
+# ... work on second ticket ...
+```
+
+All tickets will be logged as a space-separated list: `JIRA-1234 JIRA-5678`
+
 ## What Gets Tracked
 
 ### CSV Columns (28 fields)

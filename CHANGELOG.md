@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-14
+
+### Added
+- **Multi-Ticket Tracking** - Track multiple tickets per session with automatic detection and manual entry
+  - **Automatic Detection** - UserPromptSubmit hook extracts ticket patterns (JIRA-123, GH-456, #789) from first user message
+  - **/ticket Slash Command** - New `/ticket` command to manually set or add tickets throughout session
+  - **Incremental Tracking** - Run `/ticket` multiple times to accumulate tickets: `JIRA-1234 JIRA-5678`
+  - **Multiple Patterns** - Supports common ticket formats: `JIRA-123`, `GH-456`, `PROJ-789`, `#123`
+  - All tickets logged to CSV as space-separated list in `ticket_number` column
+
+### Changed
+- **SessionStart Hook** - Removed broken interactive prompt and unnecessary features
+  - Removed `/dev/tty` interactive input (didn't work with Claude Code's async hook model)
+  - Removed `CLAUDE_TICKET` environment variable support (replaced by auto-detection)
+  - Removed `.claude-ticket` file support (replaced by auto-detection)
+  - Simplified to only log session context and create initial context file
+- **Hook Configuration** - Fixed SessionStart to only run on startup/clear, not resume (compact)
+  - Added `source` matcher to prevent hook from running on session resume
+  - Fixes hanging issue when resuming sessions
+
+### Fixed
+- Session resume no longer hangs due to SessionStart hook attempting to prompt for input
+- SessionStart hook no longer blocks or waits for user input
+
+### Documentation
+- Updated README.md with Quick Start: Ticket Tracking section
+- Updated docs/features/session-analytics.md with comprehensive ticket tracking guide
+- Updated CLAUDE.md with ticket tracking implementation details
+- Removed references to deprecated environment variable and file-based methods
+
 ## [1.1.1] - 2025-11-14
 
 ### Fixed
