@@ -1,0 +1,392 @@
+name: Test Plugin
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  bats-tests:
+    name: BATS Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install BATS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Install jq for JSON validation
+        run: sudo apt-get install -y jq
+
+      - name: Run BATS tests
+        run: bats tests/test-plugin.bats
+
+  hook-validation:
+    name: Validate Hook Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check hook scripts are executable
+        run: |
+          errors=0
+          for script in hooks/*/*.sh; do
+            if [ -f "$script" ]; then
+              echo "Checking $script..."
+              if [ ! -x "$script" ]; then
+                echo "❌ $script is not executable"
+                errors=$((errors + 1))
+              fi
+
+              # Check shebang
+              if ! head -n 1 "$script" | grep -q "^#!/"; then
+                echo "❌ $script missing shebang"
+                errors=$((errors + 1))
+              fi
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo ""
+            echo "Found $errors hook script errors"
+            exit 1
+          else
+            echo "✅ All hook scripts are valid"
+          fi
+
+      - name: Validate hook scripts syntax
+        run: |
+          errors=0
+          for script in hooks/*/*.sh; do
+            if [ -f "$script" ]; then
+              echo "Checking syntax: $script..."
+              if ! bash -n "$script"; then
+                echo "❌ Syntax error in $script"
+                errors=$((errors + 1))
+              fi
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo ""
+            echo "Found $errors syntax errors"
+            exit 1
+          else
+            echo "✅ All hook scripts have valid syntax"
+          fi
+
+  config-validation:
+    name: Validate Configuration Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Validate JSON configuration files
+        run: |
+          errors=0
+          for config in config/*.json; do
+            if [ -f "$config" ]; then
+              echo "Validating $config..."
+              if ! jq empty "$config"; then
+                echo "❌ Invalid JSON in $config"
+                errors=$((errors + 1))
+              else
+                echo "✅ $config is valid JSON"
+              fi
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo ""
+            echo "Found $errors configuration errors"
+            exit 1
+          else
+            echo "✅ All configuration files are valid"
+          fi
+
+      - name: Validate hooks.json structure
+        run: |
+          echo "Validating hooks.json structure..."
+          if ! jq -e '.hooks.SessionStart' hooks/hooks.json > /dev/null; then
+            echo "❌ Missing SessionStart hook definition"
+            exit 1
+          fi
+          if ! jq -e '.hooks.SessionEnd' hooks/hooks.json > /dev/null; then
+            echo "❌ Missing SessionEnd hook definition"
+            exit 1
+          fi
+          if ! jq -e '.hooks.PreToolUse' hooks/hooks.json > /dev/null; then
+            echo "❌ Missing PreToolUse hook definition"
+            exit 1
+          fi
+          if ! jq -e '.hooks.PostToolUse' hooks/hooks.json > /dev/null; then
+            echo "❌ Missing PostToolUse hook definition"
+            exit 1
+          fi
+          echo "✅ hooks.json structure is valid"
+
+  documentation-build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-pip-zensical-${{ hashFiles('**/mkdocs.yml') }}
+          path: ~/.cache/pip
+          restore-keys: |
+            ${{ runner.os }}-pip-zensical-
+            ${{ runner.os }}-pip-
+
+      - name: Install Zensical
+        run: |
+          python -m pip install --upgrade pip
+          pip install zensical
+
+      - name: Build documentation
+        run: zensical build --strict
+
+      - name: Check for broken internal links
+        run: |
+          echo "Checking for broken internal links in documentation..."
+          errors=0
+
+          # Find all markdown files and extract internal links
+          for doc in docs/**/*.md; do
+            if [ -f "$doc" ]; then
+              # Extract markdown links [text](path)
+              grep -o '\[.*\]([^)]*\.md[^)]*)' "$doc" 2>/dev/null | while read -r link; do
+                # Extract just the path
+                path=$(echo "$link" | sed 's/.*(\([^)]*\))/\1/' | cut -d'#' -f1)
+
+                # Skip external links
+                if [[ "$path" =~ ^http ]]; then
+                  continue
+                fi
+
+                # Check if file exists relative to docs/
+                if [ -n "$path" ]; then
+                  # Handle ../ paths
+                  check_path="docs/$path"
+                  if [[ "$path" == ../* ]]; then
+                    dir=$(dirname "$doc")
+                    check_path="$dir/$path"
+                  fi
+
+                  if [ ! -f "$check_path" ]; then
+                    echo "❌ Broken link in $doc: $path"
+                    errors=$((errors + 1))
+                  fi
+                fi
+              done
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo ""
+            echo "Found $errors broken links"
+            exit 1
+          else
+            echo "✅ No broken internal links found"
+          fi
+
+  csv-field-validation:
+    name: Validate CSV Field Count
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check CSV has 28 fields
+        run: |
+          echo "Checking CSV field count in session-end.sh..."
+
+          # Extract the header line
+          header=$(grep -A1 'echo "timestamp,session_id' hooks/session-end/session-end.sh | tr -d '\n' | tr -d ' ')
+
+          # Count commas (fields = commas + 1)
+          comma_count=$(echo "$header" | tr -cd ',' | wc -c)
+          field_count=$((comma_count + 1))
+
+          echo "Found $field_count CSV fields"
+
+          if [ "$field_count" -ne 28 ]; then
+            echo "❌ Expected 28 CSV fields, found $field_count"
+            exit 1
+          fi
+
+          echo "✅ CSV has correct number of fields (28)"
+
+      - name: Check summary is 6th column
+        run: |
+          echo "Checking summary column position..."
+
+          # Check that summary appears after project and before cms_type
+          if ! grep -q "project,summary,cms_type" hooks/session-end/session-end.sh; then
+            echo "❌ Summary is not in the 6th position (after project, before cms_type)"
+            exit 1
+          fi
+
+          echo "✅ Summary is correctly positioned as 6th column"
+
+      - name: Check documentation matches implementation
+        run: |
+          echo "Checking documentation consistency..."
+
+          # Check README mentions 28 data points
+          if ! grep -q "28 data points" README.md; then
+            echo "❌ README doesn't mention 28 data points"
+            exit 1
+          fi
+
+          # Check session-analytics docs mentions 28 fields
+          if ! grep -q "28 fields" docs/features/session-analytics.md; then
+            echo "❌ session-analytics.md doesn't mention 28 fields"
+            exit 1
+          fi
+
+          echo "✅ Documentation is consistent with implementation"
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan for hardcoded secrets
+        run: |
+          # Check for potential hardcoded secrets
+          if grep -ri "password\s*=\|api_key\s*=\|secret\s*=" hooks/*.sh config/*.json | grep -v "example\|placeholder\|TODO\|SESSION_BUDGET"; then
+            echo "❌ Potential hardcoded secrets found"
+            exit 1
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+
+      - name: Check for merge conflict markers
+        run: |
+          if grep -r "^<<<<<<< \|^=======$\|^>>>>>>> " hooks/ docs/ config/ 2>/dev/null; then
+            echo "❌ Found merge conflict markers"
+            exit 1
+          else
+            echo "✅ No merge conflict markers found"
+          fi
+
+      - name: Check security patterns include .env
+        run: |
+          if ! jq -e '.blocked_files | map(select(. == ".env"))' config/security-patterns.json > /dev/null; then
+            echo "❌ Security patterns should include .env files"
+            exit 1
+          else
+            echo "✅ Security patterns include .env protection"
+          fi
+
+  json-yaml-validation:
+    name: Validate JSON and YAML Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install validators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Validate plugin.json
+        run: |
+          jq empty .claude-plugin/plugin.json && echo "✅ plugin.json is valid"
+
+      - name: Validate hooks.json
+        run: |
+          jq empty hooks/hooks.json && echo "✅ hooks.json is valid"
+
+      - name: Validate all config JSON files
+        run: |
+          for config in config/*.json; do
+            jq empty "$config" && echo "✅ $(basename $config) is valid"
+          done
+
+      - name: Validate mkdocs.yml
+        run: |
+          python -c "import yaml; yaml.safe_load(open('mkdocs.yml'))" && echo "✅ mkdocs.yml is valid"
+
+      - name: Validate GitHub Actions workflows
+        run: |
+          for workflow in .github/workflows/*.yml; do
+            echo "Validating $workflow..."
+            python -c "import yaml; yaml.safe_load(open('$workflow'))" && echo "✅ $(basename $workflow) is valid"
+          done
+
+  cost-calculation-validation:
+    name: Validate Cost Calculations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check pricing matches Claude Sonnet 4.5
+        run: |
+          echo "Checking cost calculation formulas..."
+          errors=0
+
+          # Check input token pricing ($3 per million)
+          if ! grep -q "input_tokens \* 3 / 1000000" hooks/session-end/session-end.sh; then
+            echo "❌ Input token pricing incorrect (should be $3/M)"
+            errors=$((errors + 1))
+          fi
+
+          # Check output token pricing ($15 per million)
+          if ! grep -q "output_tokens \* 15 / 1000000" hooks/session-end/session-end.sh; then
+            echo "❌ Output token pricing incorrect (should be $15/M)"
+            errors=$((errors + 1))
+          fi
+
+          # Check cache read pricing ($0.30 per million)
+          if ! grep -q "cache_read \* 0.30 / 1000000" hooks/session-end/session-end.sh; then
+            echo "❌ Cache read pricing incorrect (should be $0.30/M)"
+            errors=$((errors + 1))
+          fi
+
+          # Check cache write pricing ($3.75 per million)
+          if ! grep -q "cache_write \* 3.75 / 1000000" hooks/session-end/session-end.sh; then
+            echo "❌ Cache write pricing incorrect (should be $3.75/M)"
+            errors=$((errors + 1))
+          fi
+
+          if [ $errors -gt 0 ]; then
+            echo ""
+            echo "Found $errors pricing errors"
+            exit 1
+          else
+            echo "✅ Cost calculations are correct"
+          fi

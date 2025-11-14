@@ -9,7 +9,7 @@ Automatically track sessions, enforce security policies, guard against cost over
 ## Features at a Glance
 
 ### 📊 Session Analytics
-Track every Claude Code session with 21+ data points including duration, messages, tokens, costs, and tool usage. Export to CSV and optionally sync to Google Sheets for team collaboration.
+Track every Claude Code session with 28 data points including duration, messages, tokens, costs, and tool usage. Export to CSV and optionally sync to Google Sheets for team collaboration.
 
 [Learn more →](features/session-analytics.md)
 
@@ -61,15 +61,9 @@ Every session logs to `~/.claude/session-logs/sessions.csv` with:
 
 ---
 
-## Console Output Examples
+## Hook Feedback
 
-**Session Start:**
-```
-🚀 Session Started: 2025-11-12 08:45:23
-   Project: my-project | CMS: drupal | Environment: ddev
-   Git Branch: feature/auth | Uncommitted Changes: 3
-   Dependencies: 47
-```
+The PreToolUse and PostToolUse hooks can provide feedback when they block operations or detect issues:
 
 **Security Block:**
 ```
@@ -90,12 +84,7 @@ Every session logs to `~/.claude/session-logs/sessions.csv` with:
    Line 42: Missing function docblock
 ```
 
-**Session End:**
-```
-📊 Session logged to: ~/.claude/session-logs/sessions.csv
-   Duration: 1847s | Messages: 107 | Tokens: 19146 | Cost: $2.1847
-✅ Synced 1 session to Google Sheets
-```
+Note: SessionStart and SessionEnd hooks log data in the background. Check `~/.claude/session-logs/sessions.csv` to view your session history.
 
 ---
 
