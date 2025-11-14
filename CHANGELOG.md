@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-11-14
+
+### Fixed
+- **SessionStart Hook** - Fixed ticket number prompt not appearing during interactive sessions
+  - Changed stdin check `[ -t 0 ]` to stdout check `[ -t 1 ]` at hooks/session-start/session-start.sh:73
+  - Modified `read` command to read from `/dev/tty` instead of stdin at hooks/session-start/session-start.sh:76
+  - The hook now correctly prompts users for ticket numbers even when stdin contains JSON input from Claude Code
+
+### Technical Details
+- The issue occurred because stdin was already consumed by the `cat` command that reads hook input JSON
+- Reading from `/dev/tty` allows interactive prompts even when stdin is redirected or exhausted
+- This is the standard solution for scripts that need both piped input and interactive user prompts
+
 ## [1.1.0] - 2025-11-14
 
 ### Added
