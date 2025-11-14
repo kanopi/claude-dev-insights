@@ -27,8 +27,14 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 
 **Session CSV Format (28 fields):**
 - Location: `~/.claude/session-logs/sessions.csv`
-- Contains: timestamps, user info, project context, token usage, costs, tool usage, git status
+- Contains: timestamps, user info, project context, token usage, costs, tool usage, git status, ticket numbers
 - Optional sync to Google Sheets for team collaboration
+
+**Ticket Tracking:**
+- **Automatic detection** - Extracts ticket numbers from first user message (JIRA-123, GH-456, #789)
+- **/ticket command** - Run `/ticket JIRA-1234` to set or add tickets
+- **Multiple tickets** - Supports multiple tickets per session: `/ticket JIRA-1234 JIRA-5678`
+- **Incremental** - Add more tickets throughout session with additional `/ticket` calls
 
 **Security & Quality Logs:**
 - `~/.claude/session-logs/security.log`: Blocked operations and security events

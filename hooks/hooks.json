@@ -2,6 +2,9 @@
   "hooks": {
     "SessionStart": [
       {
+        "matchers": {
+          "source": ["startup", "clear"]
+        },
         "hooks": [
           {
             "type": "command",
@@ -41,6 +44,17 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/post-tool-use.sh",
             "description": "Quality automator - auto-run linters and validate code quality"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit/user-prompt-submit.sh",
+            "description": "Auto-detect ticket numbers from user messages"
           }
         ]
       }

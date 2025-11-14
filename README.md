@@ -60,6 +60,29 @@ That's it! Hooks activate automatically when the plugin is enabled.
 
 ---
 
+## Quick Start: Ticket Tracking
+
+Track which tickets/issues you work on in each session:
+
+**Automatic (easiest):** Just mention the ticket in your first message:
+```
+Working on JIRA-1234 - fixing the login bug
+```
+
+**Manual:** Use the `/ticket` command:
+```bash
+/ticket JIRA-1234          # Set one ticket
+/ticket JIRA-1234 GH-567   # Set multiple tickets
+/ticket JIRA-9999          # Add another ticket later
+```
+
+All tickets are logged to the CSV for easy reporting:
+```bash
+grep JIRA-1234 ~/.claude/session-logs/sessions.csv
+```
+
+---
+
 ## What Gets Tracked
 
 ### Session CSV Columns (28 fields)
