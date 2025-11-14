@@ -158,7 +158,7 @@ setup() {
   run jq -e '.auto_lint' config/quality-rules.json
   [ "$status" -eq 0 ]
 
-  run jq -e '.commit_message' config/commit-message.json
+  run jq -e '.commit_message' config/quality-rules.json
   [ "$status" -eq 0 ]
 }
 
@@ -361,18 +361,18 @@ setup() {
 @test "session-start hook creates context file" {
   # Test that the hook would create a session context file
   grep -q "start_context_file=" hooks/session-start/session-start.sh
-  grep -q "cat > \"$start_context_file\"" hooks/session-start/session-start.sh
+  grep -q 'cat > "$start_context_file"' hooks/session-start/session-start.sh
 }
 
 @test "session-end hook reads context file" {
   # Test that the hook reads the context file created by session-start
   grep -q "start_context_file=" hooks/session-end/session-end.sh
-  grep -q "if \[ -f \"$start_context_file\" \]" hooks/session-end/session-end.sh
+  grep -q 'if \[ -f "$start_context_file" \]' hooks/session-end/session-end.sh
 }
 
 @test "session-end hook cleans up context file" {
   # Test that the hook removes the temp context file
-  grep -q "rm -f \"$start_context_file\"" hooks/session-end/session-end.sh
+  grep -q 'rm -f "$start_context_file"' hooks/session-end/session-end.sh
 }
 
 @test "hooks reference correct log directory" {

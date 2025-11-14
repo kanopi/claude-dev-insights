@@ -1,0 +1,15 @@
+{
+  "auto_lint": {
+    "enabled": true,
+    "php_files": ["phpcs", "--standard=PSR12"],
+    "js_files": ["eslint"],
+    "css_files": ["stylelint"],
+    "python_files": ["flake8"]
+  },
+  "commit_message": {
+    "enabled": true,
+    "require_type": true,
+    "min_length": 10,
+    "types": ["feat", "fix", "docs", "style", "refactor", "test", "chore"]
+  }
+}
