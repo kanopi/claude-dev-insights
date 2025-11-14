@@ -70,8 +70,8 @@ user_name=$(echo "$user_name" | sed 's/,/-/g' | sed 's/"//g')
 
 # Prompt for optional ticket number
 ticket_number=""
-if [ -t 1 ]; then
-    # Only prompt if stdout is a terminal (user can interact)
+if [ -r /dev/tty ]; then
+    # Only prompt if we can read from the controlling terminal
     echo "Enter ticket number (optional, press Enter to skip): " >&2
     read -r ticket_number < /dev/tty
     ticket_number=$(echo "$ticket_number" | sed 's/,/-/g' | sed 's/"//g' | xargs)
