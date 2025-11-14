@@ -1,6 +1,6 @@
 {
   "name": "claude-dev-insights",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Developer analytics and productivity insights for Claude Code. Automatically tracks session analytics, enforces security policies, guards against cost overruns, and ensures code quality with 4 intelligent hooks: SessionEnd, SessionStart, PreToolUse, and PostToolUse.",
   "author": {
     "name": "Kanopi Studios",
