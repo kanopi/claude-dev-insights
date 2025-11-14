@@ -113,11 +113,11 @@ fi
 
 # Create CSV header if file doesn't exist
 if [ ! -f "$csv_file" ]; then
-    echo "timestamp,session_id,user,ticket_number,project,cms_type,environment_type,dependencies_count,uncommitted_changes,source,summary,end_reason,duration_seconds,user_messages,assistant_messages,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,total_cost,tool_calls,api_time_seconds,avg_call_time_ms,tools_used,git_branch,claude_version,permission_mode" > "$csv_file"
+    echo "timestamp,session_id,user,ticket_number,project,summary,cms_type,environment_type,dependencies_count,uncommitted_changes,source,end_reason,duration_seconds,user_messages,assistant_messages,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,total_cost,tool_calls,api_time_seconds,avg_call_time_ms,tools_used,git_branch,claude_version,permission_mode" > "$csv_file"
 fi
 
 # Append session data as CSV row
-echo "$end_datetime,$session_id,$start_user,$start_ticket,$project_name,$start_cms_type,$start_env_type,$start_deps_count,$start_uncommitted,$start_source,\"$summary\",$reason,$duration_seconds,$user_messages,$assistant_messages,$input_tokens,$output_tokens,$cache_read,$cache_write,$total_tokens,$total_cost,$tool_call_count,$api_time_seconds,$avg_api_time,\"$tool_list\",$git_branch,$version,$permission_mode" >> "$csv_file"
+echo "$end_datetime,$session_id,$start_user,$start_ticket,$project_name,\"$summary\",$start_cms_type,$start_env_type,$start_deps_count,$start_uncommitted,$start_source,$reason,$duration_seconds,$user_messages,$assistant_messages,$input_tokens,$output_tokens,$cache_read,$cache_write,$total_tokens,$total_cost,$tool_call_count,$api_time_seconds,$avg_api_time,\"$tool_list\",$git_branch,$version,$permission_mode" >> "$csv_file"
 
 # Sync to Google Sheets (if configured)
 # Use CLAUDE_PLUGIN_ROOT if available (when called from plugin), otherwise fall back to CLAUDE_PROJECT_DIR

@@ -1,0 +1,5 @@
+{
+  "session_budget": 5.00,
+  "warn_at_percent": 80,
+  "expensive_tools": ["WebSearch", "WebFetch", "Task"]
+}

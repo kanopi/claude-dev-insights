@@ -1,0 +1,5 @@
+{
+  "blocked_files": [".env", "*.key", "credentials.json", "*.pem", "id_rsa", "*.p12"],
+  "sensitive_files": ["wp-config.php", "settings.php", "config.php"],
+  "dangerous_commands": ["rm -rf /", "chmod 777", "sudo rm", "dd if=", "> /dev/"]
+}

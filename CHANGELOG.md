@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-14
+
+### Added
+- **BATS Test Suite** - Comprehensive test coverage with 220+ assertions
+  - Plugin manifest validation
+  - Hook script validation (executability, syntax, structure)
+  - Configuration file validation (JSON syntax, required fields)
+  - Documentation completeness checks
+  - Security scanning (hardcoded secrets, merge conflicts)
+  - CSV field count and column order validation
+  - Cost calculation formula verification
+  - Integration tests for hook interactions
+- **GitHub Actions CI/CD** - Automated testing and deployment
+  - `.github/workflows/test.yml` - 8 test jobs running on PRs and main branch
+  - `.github/workflows/deploy-docs.yml` - Automated docs deployment with Zensical
+  - BATS tests, hook validation, config validation, security scanning
+  - Documentation build verification and broken link detection
+- **CLAUDE.md** - AI assistant project context
+  - Comprehensive architecture overview
+  - Development workflow documentation
+  - Testing instructions
+  - Common tasks and troubleshooting guide
+- **Enhanced Documentation**
+  - Complete 28-field CSV column table with descriptions and examples
+  - Detailed Google Sheets setup guide with troubleshooting section
+  - Consolidated documentation in `/docs` folder
+  - Security best practices for Google Sheets integration
+- **README Badges** - Status indicators for tests, releases, and documentation
+  - Test status badge linked to GitHub Actions
+  - Last commit and release badges
+  - Documentation badge linked to GitHub Pages site
+
+### Changed
+- **CSV Column Order** - Moved `summary` to 6th position (after project, before cms_type)
+  - Improves readability when viewing CSV files
+  - **Breaking Change**: Existing CSV parsing scripts may need column position updates
+  - Old position: 11th column
+  - New position: 6th column
+- **Documentation Structure** - Removed redundant `hooks/session-end/README.md`
+  - Content migrated to `/docs/features/session-analytics.md`
+  - All documentation now centralized in `/docs` folder
+- **Field Count Correction** - Updated all documentation from 21 to 28 CSV fields
+  - README.md now states "28 data points per session"
+  - Documentation accurately reflects all tracked fields
+- **Hook Behavior Clarification** - Documentation now explains SessionStart/SessionEnd run in background
+  - Removed misleading console output examples for these hooks
+  - Clarified that PreToolUse and PostToolUse provide visible feedback
+
+### Fixed
+- **Documentation Accuracy** - Corrected field count from 21 to 28 across all docs
+- **CSV Examples** - Updated examples to match actual implementation
+- **Internal Links** - Fixed documentation links to use correct paths
+
+### Technical Details
+- **Test Coverage**: 220+ assertions across 8 test job categories
+- **CSV Fields**: Now correctly documented as 28 fields (was incorrectly stated as 21)
+- **CI/CD**: Automated testing on every PR and docs deployment on merge to main
+- **Documentation**: Built with Zensical and deployed to GitHub Pages
+
 ## [1.0.1] - 2025-11-13
 
 ### Fixed
