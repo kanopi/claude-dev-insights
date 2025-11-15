@@ -18,7 +18,7 @@ mkdir -p "$log_dir"
 # Session start context file
 start_context_file="$log_dir/.session-start-${session_id}"
 
-# Check if this is a ticket: command (avoiding slash command conflict)
+# Check if this is a ticket: command
 if echo "$prompt" | grep -qiE '^ticket:\s*'; then
     # Extract ticket numbers from the command
     new_tickets=$(echo "$prompt" | sed -E 's|^ticket:\s*||i' | xargs)
