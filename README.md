@@ -69,11 +69,11 @@ Track which tickets/issues you work on in each session:
 Working on JIRA-1234 - fixing the login bug
 ```
 
-**Manual:** Use the `/ticket` command:
-```bash
-/ticket JIRA-1234          # Set one ticket
-/ticket JIRA-1234 GH-567   # Set multiple tickets
-/ticket JIRA-9999          # Add another ticket later
+**Manual:** Use the `ticket:` command in your message:
+```
+ticket: JIRA-1234          # Set one ticket
+ticket: JIRA-1234 GH-567   # Set multiple tickets
+ticket: JIRA-9999          # Add another ticket later
 ```
 
 All tickets are logged to the CSV for easy reporting:

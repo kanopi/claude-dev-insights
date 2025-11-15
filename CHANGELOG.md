@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-11-15
+
+### Fixed
+- **Ticket Command Conflict** - Removed `/ticket` slash command to avoid conflicts with Claude Code's slash command system
+  - Deleted `commands/ticket.md` file
+  - Changed to plain text command format: `ticket: TICKET-123` instead of `/ticket TICKET-123`
+  - Updated UserPromptSubmit hook to handle new `ticket:` command format at hooks/user-prompt-submit/user-prompt-submit.sh:21-63
+  - Prevents Claude Code from trying to expand `/ticket` as a slash command
+  - All ticket tracking functionality remains the same, just different syntax
+
+### Changed
+- **Ticket Command Syntax** - Use `ticket: TICKET-123` format instead of `/ticket TICKET-123`
+  - Can still add multiple tickets: `ticket: JIRA-1234 JIRA-5678`
+  - Auto-detection from first message still works unchanged
+  - Updated prompts and messages to show new syntax
+
 ## [1.2.0] - 2025-11-14
 
 ### Added
