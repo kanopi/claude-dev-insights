@@ -32,9 +32,9 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 
 **Ticket Tracking:**
 - **Automatic detection** - Extracts ticket numbers from first user message (JIRA-123, GH-456, #789)
-- **/ticket command** - Run `/ticket JIRA-1234` to set or add tickets
-- **Multiple tickets** - Supports multiple tickets per session: `/ticket JIRA-1234 JIRA-5678`
-- **Incremental** - Add more tickets throughout session with additional `/ticket` calls
+- **ticket: command** - Type `ticket: JIRA-1234` in your message to set or add tickets
+- **Multiple tickets** - Supports multiple tickets per session: `ticket: JIRA-1234 JIRA-5678`
+- **Incremental** - Add more tickets throughout session with additional `ticket:` commands
 
 **Security & Quality Logs:**
 - `~/.claude/session-logs/security.log`: Blocked operations and security events

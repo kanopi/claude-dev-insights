@@ -66,7 +66,7 @@ user_name=$(echo "$user_name" | sed 's/,/-/g' | sed 's/"//g')
     echo "   Dependencies: $deps_count"
 } >&2
 
-# Ticket number will be set by UserPromptSubmit hook or /ticket command
+# Ticket number will be set by UserPromptSubmit hook or ticket: command
 ticket_number=""
 
 # Store start context in a temp file for SessionEnd to reference

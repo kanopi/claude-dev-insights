@@ -24,26 +24,26 @@ Working on JIRA-1234 - need to fix the login bug
 
 Supported patterns: `JIRA-123`, `GH-456`, `PROJ-789`, `#123`, etc.
 
-### Option 2: /ticket Slash Command
+### Option 2: ticket: Command
 
-Use the `/ticket` command to explicitly set one or more ticket numbers:
+Use the `ticket:` command in your message to explicitly set one or more ticket numbers:
 
-```bash
-/ticket JIRA-1234
+```
+ticket: JIRA-1234
 ```
 
 You can add multiple tickets in a single command:
 
-```bash
-/ticket JIRA-1234 JIRA-5678
+```
+ticket: JIRA-1234 JIRA-5678
 ```
 
 Or add tickets incrementally throughout the session:
 
-```bash
-/ticket JIRA-1234
+```
+ticket: JIRA-1234
 # ... work on first ticket ...
-/ticket JIRA-5678
+ticket: JIRA-5678
 # ... work on second ticket ...
 ```
 
