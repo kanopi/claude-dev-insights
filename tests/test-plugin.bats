@@ -81,6 +81,9 @@ setup() {
 
   run jq -e '.hooks.PostToolUse' hooks/hooks.json
   [ "$status" -eq 0 ]
+
+  run jq -e '.hooks.UserPromptSubmit' hooks/hooks.json
+  [ "$status" -eq 0 ]
 }
 
 @test "all hook scripts exist and are executable" {
@@ -95,6 +98,9 @@ setup() {
 
   [ -f "hooks/post-tool-use/post-tool-use.sh" ]
   [ -x "hooks/post-tool-use/post-tool-use.sh" ]
+
+  [ -f "hooks/user-prompt-submit/user-prompt-submit.sh" ]
+  [ -x "hooks/user-prompt-submit/user-prompt-submit.sh" ]
 }
 
 @test "all hook scripts have shebang" {
@@ -132,6 +138,12 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
+@test "pricing.json exists and is valid" {
+  [ -f "config/pricing.json" ]
+  run jq empty config/pricing.json
+  [ "$status" -eq 0 ]
+}
+
 @test "security-patterns.json has required fields" {
   run jq -e '.blocked_files' config/security-patterns.json
   [ "$status" -eq 0 ]
@@ -159,6 +171,27 @@ setup() {
   [ "$status" -eq 0 ]
 
   run jq -e '.commit_message' config/quality-rules.json
+  [ "$status" -eq 0 ]
+}
+
+@test "pricing.json has required fields" {
+  run jq -e '.models' config/pricing.json
+  [ "$status" -eq 0 ]
+
+  run jq -e '.default' config/pricing.json
+  [ "$status" -eq 0 ]
+
+  # Check that default pricing has all required rate fields
+  run jq -e '.default.input' config/pricing.json
+  [ "$status" -eq 0 ]
+
+  run jq -e '.default.output' config/pricing.json
+  [ "$status" -eq 0 ]
+
+  run jq -e '.default.cache_read' config/pricing.json
+  [ "$status" -eq 0 ]
+
+  run jq -e '.default.cache_write' config/pricing.json
   [ "$status" -eq 0 ]
 }
 
@@ -249,18 +282,24 @@ setup() {
   grep -q "jq" hooks/session-end/session-end.sh
 }
 
-@test "session-end hook defines CSV header with 28 fields" {
+@test "session-end hook defines CSV header with 29 fields" {
   # Extract CSV header line
   header_line=$(grep -A1 "echo \"timestamp,session_id" hooks/session-end/session-end.sh | tr -d '\n' | tr -d ' ')
   # Count commas + 1 = number of fields
   field_count=$(echo "$header_line" | grep -o "," | wc -l)
-  # 27 commas = 28 fields
-  [ "$field_count" -eq 27 ]
+  # 28 commas = 29 fields
+  [ "$field_count" -eq 28 ]
 }
 
 @test "session-end hook has summary as 6th column" {
   # Extract header and check that summary is in position 6
   header=$(grep "timestamp,session_id,user,ticket_number,project,summary" hooks/session-end/session-end.sh)
+  [ -n "$header" ]
+}
+
+@test "session-end hook has model field" {
+  # Check that model field is in the CSV header
+  header=$(grep "claude_version,model,permission_mode" hooks/session-end/session-end.sh)
   [ -n "$header" ]
 }
 
@@ -375,6 +414,30 @@ setup() {
   grep -q 'rm -f "$start_context_file"' hooks/session-end/session-end.sh
 }
 
+@test "user-prompt-submit hook handles ticket: command" {
+  # Test that the hook detects and processes ticket: commands
+  grep -q 'ticket:' hooks/user-prompt-submit/user-prompt-submit.sh
+  grep -q 'ticket_number' hooks/user-prompt-submit/user-prompt-submit.sh
+}
+
+@test "user-prompt-submit hook handles summary: command" {
+  # Test that the hook detects and processes summary: commands
+  grep -q 'summary:' hooks/user-prompt-submit/user-prompt-submit.sh
+  grep -q '.summary' hooks/user-prompt-submit/user-prompt-submit.sh
+}
+
+@test "session-end hook reads summary from context file" {
+  # Test that session-end reads summary from the context file
+  grep -q 'summary=' hooks/session-end/session-end.sh
+  grep -q '.summary' hooks/session-end/session-end.sh
+}
+
+@test "session-end hook extracts model from transcript" {
+  # Test that session-end extracts the AI model from the transcript
+  grep -q 'model=' hooks/session-end/session-end.sh
+  grep -q '.message.model' hooks/session-end/session-end.sh
+}
+
 @test "hooks reference correct log directory" {
   # All hooks should use ~/.claude/session-logs
   for script in hooks/*/*.sh; do
@@ -402,22 +465,25 @@ setup() {
   grep -q "total_cost=" hooks/session-end/session-end.sh
 }
 
-@test "session-end hook uses correct pricing" {
-  # Check for Claude Sonnet 4.5 pricing (as of Jan 2025)
-  # Input: $3/M, Output: $15/M, Cache write: $3.75/M, Cache read: $0.30/M
+@test "session-end hook uses pricing.json for cost calculation" {
+  # Check that session-end reads from pricing.json
   script="hooks/session-end/session-end.sh"
 
-  # Check input token pricing ($3 per million)
-  grep -q "input_tokens \* 3 / 1000000" "$script"
+  # Check that it references pricing_file
+  grep -q "pricing_file=" "$script"
 
-  # Check output token pricing ($15 per million)
-  grep -q "output_tokens \* 15 / 1000000" "$script"
+  # Check that it reads pricing from config
+  grep -q "pricing.json" "$script"
 
-  # Check cache read pricing ($0.30 per million)
-  grep -q "cache_read \* 0.30 / 1000000" "$script"
+  # Check that it extracts price variables
+  grep -q "input_price=" "$script"
+  grep -q "output_price=" "$script"
+  grep -q "cache_read_price=" "$script"
+  grep -q "cache_write_price=" "$script"
 
-  # Check cache write pricing ($3.75 per million)
-  grep -q "cache_write \* 3.75 / 1000000" "$script"
+  # Check that it uses variables in calculations (not hardcoded values)
+  grep -q "\$input_price" "$script"
+  grep -q "\$output_price" "$script"
 }
 
 # ==============================================================================
@@ -431,12 +497,12 @@ setup() {
   grep -qi "PostToolUse" README.md
 }
 
-@test "README mentions 28 data points" {
-  grep -q "28 data points" README.md
+@test "README mentions 29 CSV fields" {
+  grep -q "29 fields" README.md
 }
 
-@test "docs mention 28 CSV fields" {
-  grep -q "28 fields" docs/features/session-analytics.md
+@test "docs mention 29 CSV fields" {
+  grep -q "29 fields" docs/features/session-analytics.md
 }
 
 @test "CSV field count matches documentation" {
@@ -445,6 +511,6 @@ setup() {
   field_count=$(echo "$header_line" | grep -o "," | wc -l)
   field_count=$((field_count + 1))
 
-  # Should be 28 fields
-  [ "$field_count" -eq 28 ]
+  # Should be 29 fields
+  [ "$field_count" -eq 29 ]
 }

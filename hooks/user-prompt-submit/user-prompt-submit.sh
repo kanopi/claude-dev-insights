@@ -63,6 +63,35 @@ EOF
     fi
 fi
 
+# Check if this is a summary: command
+if echo "$prompt" | grep -qiE '^summary:\s*'; then
+    # Extract summary text from the command
+    new_summary=$(echo "$prompt" | sed -E 's|^summary:\s*||i' | xargs)
+
+    if [ -n "$new_summary" ]; then
+        # Update or create context file
+        if [ -f "$start_context_file" ]; then
+            temp_file=$(mktemp)
+            jq --arg summary "$new_summary" '.summary = $summary' "$start_context_file" > "$temp_file"
+            mv "$temp_file" "$start_context_file"
+        else
+            cat > "$start_context_file" <<EOF
+{
+  "session_id": "$session_id",
+  "summary": "$new_summary",
+  "start_timestamp": "$(date '+%Y-%m-%d %H:%M:%S')"
+}
+EOF
+        fi
+
+        # Output confirmation
+        echo "✅ Summary set: $new_summary"
+
+        # Exit successfully - summary command handled
+        exit 0
+    fi
+fi
+
 # Check if we've already auto-detected tickets for this session
 processed_flag="$log_dir/.ticket-processed-${session_id}"
 
@@ -113,6 +142,7 @@ else
     # No tickets detected - add context suggesting the user set one
     cat <<EOF
 💡 Tip: Use 'ticket:' to track what you're working on (e.g., ticket: JIRA-1234)
+💡 Tip: Use 'summary:' to describe this session (e.g., summary: Refactoring authentication module)
 EOF
 fi
 

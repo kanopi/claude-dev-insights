@@ -49,9 +49,29 @@ ticket: JIRA-5678
 
 All tickets will be logged as a space-separated list: `JIRA-1234 JIRA-5678`
 
+## Setting Session Summaries
+
+Use the `summary:` command in your message to describe what you're working on:
+
+```
+summary: Refactoring authentication module
+```
+
+You can update the summary at any time during the session:
+
+```
+summary: Refactoring authentication module
+# ... work on refactoring ...
+summary: Added OAuth support to authentication module
+```
+
+The most recent summary will be saved to the CSV. If no summary is set via the `summary:` command, the plugin will attempt to extract the summary from Claude's session metadata (if available), otherwise it will show "No summary".
+
+**Pro tip**: Set the summary early in your session for better tracking and reporting.
+
 ## What Gets Tracked
 
-### CSV Columns (28 fields)
+### CSV Columns (29 fields)
 
 | Column | Description | Example |
 |--------|-------------|---------|
@@ -82,16 +102,29 @@ All tickets will be logged as a space-separated list: `JIRA-1234 JIRA-5678`
 | `tools_used` | Top 5 tools with counts | `Bash:12; Read:10; Edit:8` |
 | `git_branch` | Active git branch | `main` |
 | `claude_version` | Claude Code version | `2.0.36` |
+| `model` | AI model used | `claude-sonnet-4-5-20250929` |
 | `permission_mode` | Permission mode setting | `default` |
 
 ## Cost Calculation
 
-Costs are calculated based on Claude Sonnet 4.5 pricing (as of January 2025):
+Costs are calculated automatically based on the AI model used in the session. Pricing data is stored in `config/pricing.json` and includes rates for:
 
-- **Input tokens**: $3.00 per million tokens
-- **Output tokens**: $15.00 per million tokens
-- **Cache write**: $3.75 per million tokens
-- **Cache read**: $0.30 per million tokens
+- Claude Sonnet 4.5 (default)
+- Claude Opus 4.5
+- Claude Haiku 4
+- Claude 3.5 Sonnet variants
+
+The cost calculation uses the detected model from the session transcript and applies the corresponding pricing:
+
+- **Input tokens**: Model-specific rate per million tokens
+- **Output tokens**: Model-specific rate per million tokens
+- **Cache write**: Model-specific rate per million tokens
+- **Cache read**: Model-specific rate per million tokens
+
+Example pricing (Sonnet 4.5 - January 2025):
+- Input: $3.00/million, Output: $15.00/million, Cache read: $0.30/million, Cache write: $3.75/million
+
+To update pricing or add new models, edit `config/pricing.json`. See [Configuration](../configuration/README.md) for details.
 
 ## Session End Reasons
 

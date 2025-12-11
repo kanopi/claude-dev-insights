@@ -220,7 +220,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check CSV has 28 fields
+      - name: Check CSV has 29 fields
         run: |
           echo "Checking CSV field count in session-end.sh..."
 
@@ -233,12 +233,12 @@ jobs:
 
           echo "Found $field_count CSV fields"
 
-          if [ "$field_count" -ne 28 ]; then
-            echo "❌ Expected 28 CSV fields, found $field_count"
+          if [ "$field_count" -ne 29 ]; then
+            echo "❌ Expected 29 CSV fields, found $field_count"
             exit 1
           fi
 
-          echo "✅ CSV has correct number of fields (28)"
+          echo "✅ CSV has correct number of fields (29)"
 
       - name: Check summary is 6th column
         run: |
@@ -256,15 +256,15 @@ jobs:
         run: |
           echo "Checking documentation consistency..."
 
-          # Check README mentions 28 data points
-          if ! grep -q "28 data points" README.md; then
-            echo "❌ README doesn't mention 28 data points"
+          # Check README mentions 29 fields
+          if ! grep -q "29 fields" README.md; then
+            echo "❌ README doesn't mention 29 fields"
             exit 1
           fi
 
-          # Check session-analytics docs mentions 28 fields
-          if ! grep -q "28 fields" docs/features/session-analytics.md; then
-            echo "❌ session-analytics.md doesn't mention 28 fields"
+          # Check session-analytics docs mentions 29 fields
+          if ! grep -q "29 fields" docs/features/session-analytics.md; then
+            echo "❌ session-analytics.md doesn't mention 29 fields"
             exit 1
           fi
 
@@ -354,32 +354,52 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check pricing matches Claude Sonnet 4.5
+      - name: Check pricing uses pricing.json
         run: |
-          echo "Checking cost calculation formulas..."
+          echo "Checking cost calculation uses pricing.json..."
           errors=0
 
-          # Check input token pricing ($3 per million)
-          if ! grep -q "input_tokens \* 3 / 1000000" hooks/session-end/session-end.sh; then
-            echo "❌ Input token pricing incorrect (should be $3/M)"
+          # Check that pricing.json exists
+          if [ ! -f "config/pricing.json" ]; then
+            echo "❌ config/pricing.json is missing"
             errors=$((errors + 1))
           fi
 
-          # Check output token pricing ($15 per million)
-          if ! grep -q "output_tokens \* 15 / 1000000" hooks/session-end/session-end.sh; then
-            echo "❌ Output token pricing incorrect (should be $15/M)"
+          # Check that session-end references pricing.json
+          if ! grep -q "pricing.json" hooks/session-end/session-end.sh; then
+            echo "❌ session-end.sh doesn't reference pricing.json"
             errors=$((errors + 1))
           fi
 
-          # Check cache read pricing ($0.30 per million)
-          if ! grep -q "cache_read \* 0.30 / 1000000" hooks/session-end/session-end.sh; then
-            echo "❌ Cache read pricing incorrect (should be $0.30/M)"
+          # Check that pricing is loaded from variables, not hardcoded
+          if ! grep -q "input_price=" hooks/session-end/session-end.sh; then
+            echo "❌ session-end.sh doesn't use input_price variable"
             errors=$((errors + 1))
           fi
 
-          # Check cache write pricing ($3.75 per million)
-          if ! grep -q "cache_write \* 3.75 / 1000000" hooks/session-end/session-end.sh; then
-            echo "❌ Cache write pricing incorrect (should be $3.75/M)"
+          if ! grep -q "output_price=" hooks/session-end/session-end.sh; then
+            echo "❌ session-end.sh doesn't use output_price variable"
+            errors=$((errors + 1))
+          fi
+
+          if ! grep -q "cache_read_price=" hooks/session-end/session-end.sh; then
+            echo "❌ session-end.sh doesn't use cache_read_price variable"
+            errors=$((errors + 1))
+          fi
+
+          if ! grep -q "cache_write_price=" hooks/session-end/session-end.sh; then
+            echo "❌ session-end.sh doesn't use cache_write_price variable"
+            errors=$((errors + 1))
+          fi
+
+          # Check that pricing.json has correct structure
+          if ! jq -e '.models' config/pricing.json > /dev/null; then
+            echo "❌ pricing.json missing .models"
+            errors=$((errors + 1))
+          fi
+
+          if ! jq -e '.default' config/pricing.json > /dev/null; then
+            echo "❌ pricing.json missing .default"
             errors=$((errors + 1))
           fi
 
@@ -388,5 +408,5 @@ jobs:
             echo "Found $errors pricing errors"
             exit 1
           else
-            echo "✅ Cost calculations are correct"
+            echo "✅ Cost calculations use pricing.json correctly"
           fi
