@@ -83,9 +83,24 @@ grep JIRA-1234 ~/.claude/session-logs/sessions.csv
 
 ---
 
+## Quick Start: Session Summaries
+
+Describe what you're working on for better session tracking:
+
+**Use the `summary:` command in your message:**
+```
+summary: Refactoring authentication module
+summary: Adding dark mode to dashboard
+summary: Bug fix for checkout flow
+```
+
+The summary is saved to the CSV for easy reference and reporting. You can update it anytime during the session.
+
+---
+
 ## What Gets Tracked
 
-### Session CSV Columns (28 fields)
+### Session CSV Columns (29 fields)
 
 | Column | Description | Example |
 |--------|-------------|---------|
@@ -116,6 +131,7 @@ grep JIRA-1234 ~/.claude/session-logs/sessions.csv
 | `tools_used` | Top 5 tools with counts | `Bash:12; Read:10; Edit:8` |
 | `git_branch` | Active git branch | `main` |
 | `claude_version` | Claude Code version | `2.0.36` |
+| `model` | AI model used | `claude-sonnet-4-5-20250929` |
 | `permission_mode` | Permission mode setting | `default` |
 
 ---

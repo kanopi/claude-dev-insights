@@ -1,0 +1,65 @@
+{
+  "models": {
+    "claude-sonnet-4-5-20250929": {
+      "name": "Claude Sonnet 4.5",
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_write": 3.75
+    },
+    "claude-opus-4-5-20251101": {
+      "name": "Claude Opus 4.5",
+      "input": 15.00,
+      "output": 75.00,
+      "cache_read": 1.50,
+      "cache_write": 18.75
+    },
+    "claude-opus-4-20250514": {
+      "name": "Claude Opus 4",
+      "input": 15.00,
+      "output": 75.00,
+      "cache_read": 1.50,
+      "cache_write": 18.75
+    },
+    "claude-sonnet-4-20250514": {
+      "name": "Claude Sonnet 4",
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_write": 3.75
+    },
+    "claude-haiku-4-20250107": {
+      "name": "Claude Haiku 4",
+      "input": 0.80,
+      "output": 4.00,
+      "cache_read": 0.08,
+      "cache_write": 1.00
+    },
+    "claude-3-5-sonnet-20241022": {
+      "name": "Claude 3.5 Sonnet (Oct 2024)",
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_write": 3.75
+    },
+    "claude-3-5-sonnet-20240620": {
+      "name": "Claude 3.5 Sonnet (Jun 2024)",
+      "input": 3.00,
+      "output": 15.00,
+      "cache_read": 0.30,
+      "cache_write": 3.75
+    }
+  },
+  "default": {
+    "name": "Default (Sonnet 4.5 pricing)",
+    "input": 3.00,
+    "output": 15.00,
+    "cache_read": 0.30,
+    "cache_write": 3.75
+  },
+  "notes": [
+    "All prices are in USD per million tokens",
+    "Pricing as of January 2025",
+    "See https://www.anthropic.com/pricing for latest pricing"
+  ]
+}

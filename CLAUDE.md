@@ -25,9 +25,9 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 
 ### Data Collection
 
-**Session CSV Format (28 fields):**
+**Session CSV Format (29 fields):**
 - Location: `~/.claude/session-logs/sessions.csv`
-- Contains: timestamps, user info, project context, token usage, costs, tool usage, git status, ticket numbers
+- Contains: timestamps, user info, project context, token usage, costs, tool usage, git status, ticket numbers, AI model used
 - Optional sync to Google Sheets for team collaboration
 
 **Ticket Tracking:**
@@ -35,6 +35,12 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 - **ticket: command** - Type `ticket: JIRA-1234` in your message to set or add tickets
 - **Multiple tickets** - Supports multiple tickets per session: `ticket: JIRA-1234 JIRA-5678`
 - **Incremental** - Add more tickets throughout session with additional `ticket:` commands
+
+**Session Summaries:**
+- **summary: command** - Type `summary: Refactoring auth module` in your message to describe the session
+- **Updateable** - Set or update the summary anytime during the session
+- **Fallback** - If not set manually, attempts to extract from Claude's session metadata
+- **CSV storage** - Summary is saved to the sessions.csv for easy reference and reporting
 
 **Security & Quality Logs:**
 - `~/.claude/session-logs/security.log`: Blocked operations and security events
@@ -113,11 +119,13 @@ tests/
 
 ### Cost Calculation
 
-Based on Claude Sonnet 4.5 pricing (January 2025):
-- Input tokens: $3.00 per million
-- Output tokens: $15.00 per million
-- Cache write: $3.75 per million
-- Cache read: $0.30 per million
+Costs are calculated automatically using `config/pricing.json`, which contains pricing for:
+- Claude Sonnet 4.5 (default): Input $3.00/M, Output $15.00/M, Cache read $0.30/M, Cache write $3.75/M
+- Claude Opus 4.5: Input $15.00/M, Output $75.00/M
+- Claude Haiku 4: Input $0.80/M, Output $4.00/M
+- Claude 3.5 Sonnet variants
+
+The session-end hook detects the model used and applies the appropriate pricing. Update `config/pricing.json` to add new models or adjust rates.
 
 ### Hook Behavior
 

@@ -28,7 +28,7 @@ if [ ! -f "$transcript_path" ]; then
 fi
 
 # Parse transcript file and extract data
-summary=$(head -n 1 "$transcript_path" | jq -r '.summary // "No summary"' | sed 's/,/ /g' | sed 's/"//g')
+# Note: Summary will be read from session context file (set via summary: command) or fallback to transcript
 end_datetime=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Get timestamps for duration calculation
@@ -48,6 +48,9 @@ fi
 user_messages=$(jq -s '[.[] | select(.type == "user" and .message.role == "user")] | length' "$transcript_path")
 assistant_messages=$(jq -s '[.[] | select(.type == "assistant")] | length' "$transcript_path")
 
+# Extract model from transcript (needed for pricing lookup)
+model=$(jq -r 'select(.message.model != null) | .message.model' "$transcript_path" | head -n 1)
+
 # Calculate token usage
 input_tokens=$(jq -s '[.[] | select(.message.usage != null) | .message.usage.input_tokens] | add // 0' "$transcript_path")
 output_tokens=$(jq -s '[.[] | select(.message.usage != null) | .message.usage.output_tokens] | add // 0' "$transcript_path")
@@ -55,11 +58,32 @@ cache_read=$(jq -s '[.[] | select(.message.usage != null) | .message.usage.cache
 cache_write=$(jq -s '[.[] | select(.message.usage != null) | .message.usage.cache_creation_input_tokens] | add // 0' "$transcript_path")
 total_tokens=$((input_tokens + output_tokens + cache_read + cache_write))
 
-# Calculate cost (Claude Sonnet 4.5 pricing)
-input_cost=$(echo "scale=4; $input_tokens * 3 / 1000000" | bc)
-output_cost=$(echo "scale=4; $output_tokens * 15 / 1000000" | bc)
-cache_read_cost=$(echo "scale=4; $cache_read * 0.30 / 1000000" | bc)
-cache_write_cost=$(echo "scale=4; $cache_write * 3.75 / 1000000" | bc)
+# Calculate cost using pricing config
+# Use CLAUDE_PLUGIN_ROOT if available (when called from plugin), otherwise fall back to CLAUDE_PROJECT_DIR
+if [ -n "$CLAUDE_PLUGIN_ROOT" ]; then
+    pricing_file="$CLAUDE_PLUGIN_ROOT/config/pricing.json"
+else
+    pricing_file="$CLAUDE_PROJECT_DIR/.claude/config/pricing.json"
+fi
+
+# Get pricing for the model (or use default if model not found)
+if [ -f "$pricing_file" ] && [ -n "$model" ]; then
+    input_price=$(jq -r ".models[\"$model\"].input // .default.input" "$pricing_file")
+    output_price=$(jq -r ".models[\"$model\"].output // .default.output" "$pricing_file")
+    cache_read_price=$(jq -r ".models[\"$model\"].cache_read // .default.cache_read" "$pricing_file")
+    cache_write_price=$(jq -r ".models[\"$model\"].cache_write // .default.cache_write" "$pricing_file")
+else
+    # Fallback to Sonnet 4.5 pricing if config not found
+    input_price=3.00
+    output_price=15.00
+    cache_read_price=0.30
+    cache_write_price=3.75
+fi
+
+input_cost=$(echo "scale=4; $input_tokens * $input_price / 1000000" | bc)
+output_cost=$(echo "scale=4; $output_tokens * $output_price / 1000000" | bc)
+cache_read_cost=$(echo "scale=4; $cache_read * $cache_read_price / 1000000" | bc)
+cache_write_cost=$(echo "scale=4; $cache_write * $cache_write_price / 1000000" | bc)
 total_cost=$(echo "scale=4; $input_cost + $output_cost + $cache_read_cost + $cache_write_cost" | bc)
 
 # Tool usage - get top 5 tools as comma-separated list
@@ -91,6 +115,7 @@ start_deps_count=""
 start_uncommitted=""
 start_git_branch=""
 start_source=""
+summary=""
 
 if [ -f "$start_context_file" ]; then
     start_user=$(jq -r '.user // ""' "$start_context_file")
@@ -101,6 +126,7 @@ if [ -f "$start_context_file" ]; then
     start_uncommitted=$(jq -r '.uncommitted_changes // ""' "$start_context_file")
     start_git_branch=$(jq -r '.git_branch // ""' "$start_context_file")
     start_source=$(jq -r '.source // ""' "$start_context_file")
+    summary=$(jq -r '.summary // ""' "$start_context_file")
 
     # Use session start git_branch as fallback if transcript doesn't have it
     if [ -z "$git_branch" ] && [ -n "$start_git_branch" ]; then
@@ -111,13 +137,18 @@ if [ -f "$start_context_file" ]; then
     rm -f "$start_context_file"
 fi
 
+# Fallback to transcript summary if no summary was set via summary: command
+if [ -z "$summary" ]; then
+    summary=$(head -n 1 "$transcript_path" | jq -r '.summary // "No summary"' | sed 's/,/ /g' | sed 's/"//g')
+fi
+
 # Create CSV header if file doesn't exist
 if [ ! -f "$csv_file" ]; then
-    echo "timestamp,session_id,user,ticket_number,project,summary,cms_type,environment_type,dependencies_count,uncommitted_changes,source,end_reason,duration_seconds,user_messages,assistant_messages,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,total_cost,tool_calls,api_time_seconds,avg_call_time_ms,tools_used,git_branch,claude_version,permission_mode" > "$csv_file"
+    echo "timestamp,session_id,user,ticket_number,project,summary,cms_type,environment_type,dependencies_count,uncommitted_changes,source,end_reason,duration_seconds,user_messages,assistant_messages,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,total_tokens,total_cost,tool_calls,api_time_seconds,avg_call_time_ms,tools_used,git_branch,claude_version,model,permission_mode" > "$csv_file"
 fi
 
 # Append session data as CSV row
-echo "$end_datetime,$session_id,$start_user,$start_ticket,$project_name,\"$summary\",$start_cms_type,$start_env_type,$start_deps_count,$start_uncommitted,$start_source,$reason,$duration_seconds,$user_messages,$assistant_messages,$input_tokens,$output_tokens,$cache_read,$cache_write,$total_tokens,$total_cost,$tool_call_count,$api_time_seconds,$avg_api_time,\"$tool_list\",$git_branch,$version,$permission_mode" >> "$csv_file"
+echo "$end_datetime,$session_id,$start_user,$start_ticket,$project_name,\"$summary\",$start_cms_type,$start_env_type,$start_deps_count,$start_uncommitted,$start_source,$reason,$duration_seconds,$user_messages,$assistant_messages,$input_tokens,$output_tokens,$cache_read,$cache_write,$total_tokens,$total_cost,$tool_call_count,$api_time_seconds,$avg_api_time,\"$tool_list\",$git_branch,$version,$model,$permission_mode" >> "$csv_file"
 
 # Sync to Google Sheets (if configured)
 # Use CLAUDE_PLUGIN_ROOT if available (when called from plugin), otherwise fall back to CLAUDE_PROJECT_DIR
