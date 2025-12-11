@@ -432,6 +432,82 @@ setup() {
   grep -q '.summary' hooks/session-end/session-end.sh
 }
 
+@test "user-prompt-submit handles combined ticket and summary command" {
+  # Create a temporary log directory and session context
+  temp_log_dir=$(mktemp -d)
+  session_id="test-session-$$"
+
+  # Create input JSON with combined command (ticket first)
+  input_json=$(cat <<EOF
+{
+  "session_id": "$session_id",
+  "prompt": "ticket: JIRA-12345 summary: Fix authentication bug",
+  "cwd": "$PWD"
+}
+EOF
+)
+
+  # Override log directory for this test
+  (
+    export HOME="$temp_log_dir"
+    mkdir -p "$temp_log_dir/.claude/session-logs"
+
+    # Run the hook
+    echo "$input_json" | bash hooks/user-prompt-submit/user-prompt-submit.sh
+
+    # Check that both ticket and summary were stored
+    context_file="$temp_log_dir/.claude/session-logs/.session-start-${session_id}"
+    [ -f "$context_file" ]
+
+    ticket=$(jq -r '.ticket_number // ""' "$context_file")
+    summary=$(jq -r '.summary // ""' "$context_file")
+
+    [ "$ticket" = "JIRA-12345" ]
+    [ "$summary" = "Fix authentication bug" ]
+  )
+
+  # Cleanup
+  rm -rf "$temp_log_dir"
+}
+
+@test "user-prompt-submit handles reverse order (summary then ticket)" {
+  # Test that summary: first, ticket: second also works
+  temp_log_dir=$(mktemp -d)
+  session_id="test-reverse-$$"
+
+  # Create input JSON with summary first, ticket second
+  input_json=$(cat <<EOF
+{
+  "session_id": "$session_id",
+  "prompt": "summary: Refactoring the authentication module ticket: PROJ-999",
+  "cwd": "$PWD"
+}
+EOF
+)
+
+  # Override log directory for this test
+  (
+    export HOME="$temp_log_dir"
+    mkdir -p "$temp_log_dir/.claude/session-logs"
+
+    # Run the hook
+    echo "$input_json" | bash hooks/user-prompt-submit/user-prompt-submit.sh
+
+    # Check that both ticket and summary were stored correctly
+    context_file="$temp_log_dir/.claude/session-logs/.session-start-${session_id}"
+    [ -f "$context_file" ]
+
+    ticket=$(jq -r '.ticket_number // ""' "$context_file")
+    summary=$(jq -r '.summary // ""' "$context_file")
+
+    [ "$ticket" = "PROJ-999" ]
+    [ "$summary" = "Refactoring the authentication module" ]
+  )
+
+  # Cleanup
+  rm -rf "$temp_log_dir"
+}
+
 @test "session-end hook extracts model from transcript" {
   # Test that session-end extracts the AI model from the transcript
   grep -q 'model=' hooks/session-end/session-end.sh
