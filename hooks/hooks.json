@@ -26,28 +26,6 @@
         ]
       }
     ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/pre-tool-use.sh",
-            "description": "Security scanner and cost guard - blocks sensitive file access and dangerous commands"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/post-tool-use.sh",
-            "description": "Quality automator - auto-run linters and validate code quality"
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [

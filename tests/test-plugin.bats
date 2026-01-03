@@ -76,12 +76,6 @@ setup() {
   run jq -e '.hooks.SessionEnd' hooks/hooks.json
   [ "$status" -eq 0 ]
 
-  run jq -e '.hooks.PreToolUse' hooks/hooks.json
-  [ "$status" -eq 0 ]
-
-  run jq -e '.hooks.PostToolUse' hooks/hooks.json
-  [ "$status" -eq 0 ]
-
   run jq -e '.hooks.UserPromptSubmit' hooks/hooks.json
   [ "$status" -eq 0 ]
 }
@@ -92,12 +86,6 @@ setup() {
 
   [ -f "hooks/session-end/session-end.sh" ]
   [ -x "hooks/session-end/session-end.sh" ]
-
-  [ -f "hooks/pre-tool-use/pre-tool-use.sh" ]
-  [ -x "hooks/pre-tool-use/pre-tool-use.sh" ]
-
-  [ -f "hooks/post-tool-use/post-tool-use.sh" ]
-  [ -x "hooks/post-tool-use/post-tool-use.sh" ]
 
   [ -f "hooks/user-prompt-submit/user-prompt-submit.sh" ]
   [ -x "hooks/user-prompt-submit/user-prompt-submit.sh" ]
@@ -120,57 +108,9 @@ setup() {
   [ -d "config" ]
 }
 
-@test "security-patterns.json exists and is valid" {
-  [ -f "config/security-patterns.json" ]
-  run jq empty config/security-patterns.json
-  [ "$status" -eq 0 ]
-}
-
-@test "cost-thresholds.json exists and is valid" {
-  [ -f "config/cost-thresholds.json" ]
-  run jq empty config/cost-thresholds.json
-  [ "$status" -eq 0 ]
-}
-
-@test "quality-rules.json exists and is valid" {
-  [ -f "config/quality-rules.json" ]
-  run jq empty config/quality-rules.json
-  [ "$status" -eq 0 ]
-}
-
 @test "pricing.json exists and is valid" {
   [ -f "config/pricing.json" ]
   run jq empty config/pricing.json
-  [ "$status" -eq 0 ]
-}
-
-@test "security-patterns.json has required fields" {
-  run jq -e '.blocked_files' config/security-patterns.json
-  [ "$status" -eq 0 ]
-
-  run jq -e '.sensitive_files' config/security-patterns.json
-  [ "$status" -eq 0 ]
-
-  run jq -e '.dangerous_commands' config/security-patterns.json
-  [ "$status" -eq 0 ]
-}
-
-@test "cost-thresholds.json has required fields" {
-  run jq -e '.session_budget' config/cost-thresholds.json
-  [ "$status" -eq 0 ]
-
-  run jq -e '.warn_at_percent' config/cost-thresholds.json
-  [ "$status" -eq 0 ]
-
-  run jq -e '.expensive_tools' config/cost-thresholds.json
-  [ "$status" -eq 0 ]
-}
-
-@test "quality-rules.json has required fields" {
-  run jq -e '.auto_lint' config/quality-rules.json
-  [ "$status" -eq 0 ]
-
-  run jq -e '.commit_message' config/quality-rules.json
   [ "$status" -eq 0 ]
 }
 
@@ -332,16 +272,6 @@ setup() {
     echo "Found merge conflict markers"
     return 1
   fi
-}
-
-@test "security patterns block .env files" {
-  run jq -e '.blocked_files | map(select(. == ".env"))' config/security-patterns.json
-  [ "$status" -eq 0 ]
-}
-
-@test "security patterns block credential files" {
-  patterns=$(jq -r '.blocked_files[]' config/security-patterns.json)
-  echo "$patterns" | grep -q "credentials\|\.key"
 }
 
 # ==============================================================================
@@ -566,11 +496,10 @@ EOF
 # DOCUMENTATION CONSISTENCY TESTS
 # ==============================================================================
 
-@test "README mentions all 4 hooks" {
+@test "README mentions all hooks" {
   grep -qi "SessionStart" README.md
   grep -qi "SessionEnd" README.md
-  grep -qi "PreToolUse" README.md
-  grep -qi "PostToolUse" README.md
+  grep -qi "UserPromptSubmit" README.md
 }
 
 @test "README mentions 29 CSV fields" {

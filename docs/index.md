@@ -2,31 +2,16 @@
 
 **Comprehensive developer analytics and productivity insights for Claude Code.**
 
-Automatically track sessions, enforce security policies, guard against cost overruns, and ensure code quality with 4 intelligent hooks.
+Automatically track every Claude Code session with detailed metrics and optional Google Sheets sync.
 
 ---
 
 ## Features at a Glance
 
 ### 📊 Session Analytics
-Track every Claude Code session with 28 data points including duration, messages, tokens, costs, and tool usage. Export to CSV and optionally sync to Google Sheets for team collaboration.
+Track every Claude Code session with 29 data points including duration, messages, tokens, costs, and tool usage. Export to CSV and optionally sync to Google Sheets for team collaboration.
 
 [Learn more →](features/session-analytics.md)
-
-### 🔒 Security Scanner
-Block access to sensitive files (`.env`, `*.key`, credentials), detect dangerous commands (`rm -rf`, `chmod 777`), and maintain a security audit trail.
-
-[Learn more →](features/security-scanner.md)
-
-### 💰 Cost Guard
-Track session costs in real-time, set budget limits, and get warnings before exceeding spending thresholds. Monitor expensive operations like WebSearch and WebFetch.
-
-[Learn more →](features/cost-guard.md)
-
-### ✅ Quality Automator
-Automatically run linters after file edits (PHPCS, ESLint, Stylelint, Flake8), validate commit messages, and maintain code quality standards.
-
-[Learn more →](features/quality-automator.md)
 
 ---
 
@@ -61,30 +46,9 @@ Every session logs to `~/.claude/session-logs/sessions.csv` with:
 
 ---
 
-## Hook Feedback
+## How It Works
 
-The PreToolUse and PostToolUse hooks can provide feedback when they block operations or detect issues:
-
-**Security Block:**
-```
-🔒 BLOCKED: Access to sensitive file '.env'
-   This file matches a security pattern and cannot be accessed.
-```
-
-**Cost Warning:**
-```
-💰 COST WARNING: Session approaching budget limit
-   Tool: WebSearch (expensive operation)
-```
-
-**Quality Violation:**
-```
-⚠️  Code Quality Warning: src/api.php
-   Linter: phpcs
-   Line 42: Missing function docblock
-```
-
-Note: SessionStart and SessionEnd hooks log data in the background. Check `~/.claude/session-logs/sessions.csv` to view your session history.
+SessionStart and SessionEnd hooks automatically run in the background when you start and end Claude Code sessions. All data is logged to `~/.claude/session-logs/sessions.csv` and can optionally sync to Google Sheets for team collaboration.
 
 ---
 
@@ -95,8 +59,7 @@ Note: SessionStart and SessionEnd hooks log data in the background. Check `~/.cl
 ✅ Session metadata (timestamps, IDs, duration)
 ✅ Usage statistics (tokens, costs, tool counts)
 ✅ Session summary (one-line description)
-✅ Security events (blocked operations)
-✅ Quality events (linter results)
+✅ Git context (branch, status, ticket numbers)
 
 **NOT logged:**
 
@@ -118,7 +81,6 @@ All data stays on your machine unless you explicitly configure Google Sheets syn
 
 **Optional:**
 - Python 3 + `gspread` + `oauth2client` (for Google Sheets sync)
-- Linters (PHPCS, ESLint, etc.) for quality automation
 
 ---
 
@@ -126,7 +88,7 @@ All data stays on your machine unless you explicitly configure Google Sheets syn
 
 - [Installation Guide](installation.md) - Get up and running in 5 minutes
 - [Quick Start](quick-start.md) - Learn the basics
-- [Configuration](configuration/overview.md) - Customize security, cost, and quality rules
+- [Session Analytics](features/session-analytics.md) - Explore all tracked data
 - [Google Sheets Setup](google-sheets/setup.md) - Enable cloud sync
 
 ---
