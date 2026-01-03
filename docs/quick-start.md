@@ -24,7 +24,7 @@ This is the **SessionStart hook** profiling your development environment.
 Use Claude Code normally. The plugin runs silently in the background:
 
 - **SessionStart** logs your environment at session start
-- **UserPromptSubmit** extracts ticket numbers and session summaries from your messages
+- **UserPromptSubmit** extracts ticket numbers and session topics from structured commands (#ticket:, #topic:)
 - **SessionEnd** logs comprehensive analytics when you exit
 
 ---

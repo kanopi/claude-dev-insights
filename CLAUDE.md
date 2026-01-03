@@ -11,7 +11,7 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 1. **Hooks System** (`hooks/`)
    - **SessionStart**: Captures development environment context when sessions begin
    - **SessionEnd**: Logs comprehensive session statistics to CSV
-   - **UserPromptSubmit**: Auto-detects ticket numbers and session summaries from user messages
+   - **UserPromptSubmit**: Extracts ticket numbers and session topics from structured commands
 
 2. **Configuration** (`config/`)
    - `pricing.json`: Model pricing for cost calculations
@@ -28,16 +28,15 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 - Optional sync to Google Sheets for team collaboration
 
 **Ticket Tracking:**
-- **Automatic detection** - Extracts ticket numbers from first user message (JIRA-123, GH-456, #789)
-- **ticket: command** - Type `ticket: JIRA-1234` in your message to set or add tickets
-- **Multiple tickets** - Supports multiple tickets per session: `ticket: JIRA-1234 JIRA-5678`
-- **Incremental** - Add more tickets throughout session with additional `ticket:` commands
+- **#ticket: command** - Type `#ticket: JIRA-1234` at the start of your message to set tickets
+- **Multiple tickets** - Supports multiple tickets: `#ticket: JIRA-1234 GH-567`
+- **Incremental** - Add more tickets throughout session with additional `#ticket:` commands
 
-**Session Summaries:**
-- **summary: command** - Type `summary: Refactoring auth module` in your message to describe the session
-- **Updateable** - Set or update the summary anytime during the session
-- **Fallback** - If not set manually, attempts to extract from Claude's session metadata
-- **CSV storage** - Summary is saved to the sessions.csv for easy reference and reporting
+**Session Topics:**
+- **#topic: command** - Type `#topic: feat: Adding authentication` at the start of your message
+- **Updateable** - Set or update the topic anytime during the session
+- **Convention format** - Supports conventional commit style (feat:, fix:, refactor:, etc.)
+- **CSV storage** - Topic is saved to the sessions.csv for easy reference and reporting
 
 ## Key Technologies
 
@@ -91,7 +90,7 @@ hooks/
     session-end.sh     # Session logging
     sync-to-google-sheets.py  # Optional cloud sync
   user-prompt-submit/
-    user-prompt-submit.sh  # Ticket and summary detection
+    user-prompt-submit.sh  # Ticket and topic extraction
 config/
   *.json              # Configuration files
 docs/
@@ -120,7 +119,7 @@ The session-end hook detects the model used and applies the appropriate pricing.
 ### Hook Behavior
 
 - **SessionStart/SessionEnd**: Run automatically, output to stderr (may not be visible in console)
-- **UserPromptSubmit**: Parses user messages for ticket numbers and session summaries
+- **UserPromptSubmit**: Parses structured commands (#ticket:, #topic:) from user messages
 
 ### CSV Column Order
 
