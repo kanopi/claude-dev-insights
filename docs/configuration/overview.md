@@ -9,21 +9,6 @@ Claude Dev Insights can be customized through configuration files in the `config
 
 Configure AI model pricing for accurate cost tracking. Supports multiple Claude models including Sonnet, Opus, and Haiku variants.
 
-### [Security Patterns](security-patterns.md)
-**File**: `config/security-patterns.json`
-
-Define file patterns and commands that should be blocked for security reasons.
-
-### [Cost Thresholds](cost-thresholds.md)
-**File**: `config/cost-thresholds.json`
-
-Set budget limits and define expensive tools to guard against excessive API costs.
-
-### [Quality Rules](quality-rules.md)
-**File**: `config/quality-rules.json`
-
-Configure linters, code quality checks, and commit message rules.
-
 ## Configuration Best Practices
 
 1. **Version Control**: Keep configuration files in your repository

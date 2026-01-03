@@ -159,15 +159,12 @@ The plugin creates the following structure:
 │   ├── hooks.json              # Hook configuration
 │   ├── session-start/          # SessionStart hook
 │   ├── session-end/            # SessionEnd hook
-│   ├── pre-tool-use/           # PreToolUse hook
-│   └── post-tool-use/          # PostToolUse hook
+│   └── user-prompt-submit/     # UserPromptSubmit hook
 ├── lib/
 │   ├── common.sh               # Bash utilities
 │   └── analytics.py            # Python analytics
-└── config/                     # Created on first run
-    ├── security-patterns.json
-    ├── cost-thresholds.json
-    └── quality-rules.json
+└── config/
+    └── pricing.json            # Model pricing configuration
 ```
 
 ---
@@ -178,12 +175,10 @@ The plugin stores data in your home directory:
 
 ```
 ~/.claude/session-logs/
-├── sessions.csv        # Session analytics
-├── security.log        # Security events
-└── quality.log         # Quality events
+└── sessions.csv        # Session analytics
 ```
 
-These files are created automatically on first use.
+This file is created automatically on first use.
 
 ---
 
@@ -264,7 +259,7 @@ chmod 755 ~/.claude/session-logs
 ## Next Steps
 
 - [Quick Start Guide](quick-start.md) - Learn how to use the plugin
-- [Configuration](configuration/overview.md) - Customize security, cost, and quality rules
+- [Session Analytics](features/session-analytics.md) - Explore tracked data
 - [Google Sheets Setup](google-sheets/setup.md) - Enable cloud sync
 
 ---

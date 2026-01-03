@@ -7,35 +7,19 @@
 [![Documentation](https://img.shields.io/badge/docs-zensical-blue.svg)](https://kanopi.github.io/claude-dev-insights/)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE.md)
 
-**Developer analytics and productivity insights for Claude Code.** Automatically track sessions, enforce security policies, guard against cost overruns, and ensure code quality with 4 intelligent hooks.
+**Developer analytics and productivity insights for Claude Code.** Automatically track sessions with detailed metrics and optional Google Sheets sync using 3 intelligent hooks.
 
 ---
 
 ## Features
 
-### 📊 Session Analytics (SessionStart + SessionEnd)
-- **28 data points per session** - Duration, messages, tokens, costs, tool usage
+### 📊 Session Analytics (SessionStart + SessionEnd + UserPromptSubmit)
+- **29 data points per session** - Duration, messages, tokens, costs, tool usage
 - **Local CSV storage** - `~/.claude/session-logs/sessions.csv`
 - **Google Sheets sync** - Optional cloud backup for team sharing
 - **Environment profiling** - CMS detection, dependency tracking, git status
-
-### 🔒 Security Scanner (PreToolUse)
-- **Block sensitive file access** - `.env`, `*.key`, credentials, secrets
-- **Dangerous command detection** - `rm -rf`, `chmod 777`, `sudo rm`
-- **Real-time alerts** - Console warnings before risky operations
-- **Security event logging** - Audit trail of blocked operations
-
-### 💰 Cost Guard (PreToolUse)
-- **Session budget tracking** - Configurable spending limits
-- **Expensive tool warnings** - WebSearch, WebFetch, Task operations
-- **Real-time cost alerts** - Stop before exceeding budget
-- **Token usage monitoring** - Track cumulative costs per session
-
-### ✅ Quality Automator (PostToolUse)
-- **Auto-run linters** - PHPCS, ESLint, Stylelint, Flake8 after edits
-- **Commit message validation** - Conventional commits enforcement
-- **Code quality logging** - Track violations and improvements
-- **Configurable rules** - Customize quality standards
+- **Ticket tracking** - Auto-detect and log issue/ticket numbers
+- **Session summaries** - Describe what you're working on
 
 ---
 
@@ -136,88 +120,6 @@ The summary is saved to the CSV for easy reference and reporting. You can update
 
 ---
 
-## Configuration
-
-All hooks are configurable via JSON files in `config/`:
-
-### Security Patterns (`config/security-patterns.json`)
-
-```json
-{
-  "blocked_files": [".env", "*.key", "credentials.json"],
-  "sensitive_files": ["wp-config.php", "settings.php"],
-  "dangerous_commands": ["rm -rf /", "chmod 777", "sudo rm"]
-}
-```
-
-### Cost Thresholds (`config/cost-thresholds.json`)
-
-```json
-{
-  "session_budget": 5.00,
-  "warn_at_percent": 80,
-  "expensive_tools": ["WebSearch", "WebFetch", "Task"]
-}
-```
-
-### Quality Rules (`config/quality-rules.json`)
-
-```json
-{
-  "auto_lint": {
-    "enabled": true,
-    "php_files": ["phpcs", "--standard=PSR12"],
-    "js_files": ["eslint"]
-  },
-  "commit_message": {
-    "enabled": true,
-    "require_type": true,
-    "min_length": 10,
-    "types": ["feat", "fix", "docs", "style", "refactor", "test", "chore"]
-  }
-}
-```
-
-**Configuration location:**
-- Plugin users: `~/.claude/plugins/cache/claude-dev-insights/config/`
-- Project install: `$CLAUDE_PROJECT_DIR/.claude/dev-insights/config/`
-
----
-
-## Hook Feedback
-
-The PreToolUse and PostToolUse hooks can provide feedback when they block operations or detect issues:
-
-### Security Block
-```
-🔒 BLOCKED: Access to sensitive file '.env'
-   This file matches a security pattern and cannot be accessed.
-   If this is a false positive, update: config/security-patterns.json
-```
-
-### Cost Warning
-```
-💰 COST WARNING: Session approaching budget limit
-   Tool: WebSearch (expensive operation)
-   Check your usage with: cat ~/.claude/session-logs/sessions.csv
-```
-
-### Quality Violation
-```
-⚠️  Code Quality Warning: src/api.php
-   Linter: phpcs
-
-   FILE: /path/to/src/api.php
-   Line 42: Missing function docblock
-   Line 58: Variable $data is undefined
-
-   ... (output truncated, see full results with: phpcs src/api.php)
-```
-
-**Note:** SessionStart and SessionEnd hooks log data in the background. Check `~/.claude/session-logs/sessions.csv` to view your session history.
-
----
-
 ## Google Sheets Integration
 
 ### Why Use Google Sheets?
@@ -267,61 +169,6 @@ awk -F, 'NR>1 {cost[$3]+=$14} END {for(p in cost) print p": $"cost[p]}' ~/.claud
 python3 ~/.claude/plugins/cache/claude-dev-insights/lib/analytics.py markdown
 ```
 
-### View Security Events
-
-```bash
-# All security events
-cat ~/.claude/session-logs/security.log
-
-# Today's events
-grep "$(date '+%Y-%m-%d')" ~/.claude/session-logs/security.log
-
-# Blocked operations
-grep "BLOCKED" ~/.claude/session-logs/security.log
-```
-
-### View Quality Events
-
-```bash
-# All quality events
-cat ~/.claude/session-logs/quality.log
-
-# Failed lints
-grep "LINT_FAIL" ~/.claude/session-logs/quality.log
-
-# Invalid commits
-grep "COMMIT_INVALID" ~/.claude/session-logs/quality.log
-```
-
----
-
-## Disabling Features
-
-### Disable Specific Hooks
-
-Edit `hooks/hooks.json` and remove unwanted hooks, or set them to empty arrays:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [],
-    "PostToolUse": []
-  }
-}
-```
-
-### Disable Google Sheets Sync
-
-```bash
-python3 ~/.claude/plugins/cache/claude-dev-insights/hooks/session-end/sync-to-google-sheets.py --disable
-```
-
-### Disable Plugin Entirely
-
-```bash
-claude plugins disable claude-dev-insights
-```
-
 ---
 
 ## Privacy & Security
@@ -331,14 +178,12 @@ claude plugins disable claude-dev-insights
 - ✅ Session metadata (timestamps, IDs, duration)
 - ✅ Usage statistics (tokens, costs, tool counts)
 - ✅ Session summary (one-line description)
-- ✅ Security events (blocked operations)
-- ✅ Quality events (linter results)
+- ✅ Ticket numbers (for issue tracking)
 - ❌ **Not logged:** Actual code, conversation content, sensitive data
 
 ### Data Location
 
 - **Local CSV**: `~/.claude/session-logs/sessions.csv` (your machine only)
-- **Local logs**: `~/.claude/session-logs/security.log`, `quality.log`
 - **Google Sheets**: Only if you explicitly configure it
 
 ### Security Best Practices
@@ -363,7 +208,6 @@ If using Google Sheets:
 ### Optional
 - **Python 3** - For Google Sheets sync and analytics reports
 - **gspread, oauth2client** - `pip3 install gspread oauth2client`
-- **Linters** - PHPCS, ESLint, Stylelint, Flake8 (for quality automation)
 
 ---
 

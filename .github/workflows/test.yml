@@ -128,12 +128,8 @@ jobs:
             echo "❌ Missing SessionEnd hook definition"
             exit 1
           fi
-          if ! jq -e '.hooks.PreToolUse' hooks/hooks.json > /dev/null; then
-            echo "❌ Missing PreToolUse hook definition"
-            exit 1
-          fi
-          if ! jq -e '.hooks.PostToolUse' hooks/hooks.json > /dev/null; then
-            echo "❌ Missing PostToolUse hook definition"
+          if ! jq -e '.hooks.UserPromptSubmit' hooks/hooks.json > /dev/null; then
+            echo "❌ Missing UserPromptSubmit hook definition"
             exit 1
           fi
           echo "✅ hooks.json structure is valid"

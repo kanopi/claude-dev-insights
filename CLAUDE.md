@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Claude Dev Insights is a comprehensive analytics and productivity plugin for Claude Code CLI. It provides automated session tracking, security scanning, cost monitoring, and code quality enforcement through intelligent hooks.
+Claude Dev Insights is a comprehensive analytics and productivity plugin for Claude Code CLI. It provides automated session tracking through intelligent hooks.
 
 ## Architecture
 
@@ -11,13 +11,10 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 1. **Hooks System** (`hooks/`)
    - **SessionStart**: Captures development environment context when sessions begin
    - **SessionEnd**: Logs comprehensive session statistics to CSV
-   - **PreToolUse**: Security scanner and cost guard that blocks risky operations
-   - **PostToolUse**: Quality automator that runs linters after file edits
+   - **UserPromptSubmit**: Auto-detects ticket numbers and session summaries from user messages
 
 2. **Configuration** (`config/`)
-   - `security-patterns.json`: Patterns for blocked files and dangerous commands
-   - `cost-thresholds.json`: Session budget limits and expensive tool definitions
-   - `quality-rules.json`: Linter configurations and commit message rules
+   - `pricing.json`: Model pricing for cost calculations
 
 3. **Documentation** (`docs/`)
    - Built with Zensical (MkDocs-compatible)
@@ -41,10 +38,6 @@ Claude Dev Insights is a comprehensive analytics and productivity plugin for Cla
 - **Updateable** - Set or update the summary anytime during the session
 - **Fallback** - If not set manually, attempts to extract from Claude's session metadata
 - **CSV storage** - Summary is saved to the sessions.csv for easy reference and reporting
-
-**Security & Quality Logs:**
-- `~/.claude/session-logs/security.log`: Blocked operations and security events
-- `~/.claude/session-logs/quality.log`: Linter results and commit validations
 
 ## Key Technologies
 
@@ -97,10 +90,8 @@ hooks/
   session-end/
     session-end.sh     # Session logging
     sync-to-google-sheets.py  # Optional cloud sync
-  pre-tool-use/
-    pre-tool-use.sh    # Security & cost guards
-  post-tool-use/
-    post-tool-use.sh   # Quality automation
+  user-prompt-submit/
+    user-prompt-submit.sh  # Ticket and summary detection
 config/
   *.json              # Configuration files
 docs/
@@ -114,7 +105,6 @@ tests/
 ### Security
 
 - **Never log actual code or conversation content** - only metadata
-- Sensitive file patterns in `config/security-patterns.json` block access
 - Service account credentials for Google Sheets must be kept private
 
 ### Cost Calculation
@@ -130,8 +120,7 @@ The session-end hook detects the model used and applies the appropriate pricing.
 ### Hook Behavior
 
 - **SessionStart/SessionEnd**: Run automatically, output to stderr (may not be visible in console)
-- **PreToolUse**: Can block operations, provides feedback
-- **PostToolUse**: Runs after tool execution, provides quality warnings
+- **UserPromptSubmit**: Parses user messages for ticket numbers and session summaries
 
 ### CSV Column Order
 
@@ -169,7 +158,6 @@ The summary column is the 6th field (after project, before cms_type) for better 
 ### Optional
 - Python 3 - For Google Sheets sync
 - `gspread`, `oauth2client` - Python packages for Sheets API
-- Linters - PHPCS, ESLint, Stylelint, Flake8 (for quality automation)
 
 ## Troubleshooting
 
