@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-03
+
+### Changed
+- **BREAKING: Command Format Refactoring** - Replaced conversational commands with deterministic structured format
+  - Changed `ticket:` to `#ticket:` command format for more predictable parsing
+  - Changed `summary:` to `#topic:` command format (better naming for session description)
+  - Removed automatic ticket detection from message content (was error-prone)
+  - Removed conversational output messages for cleaner, silent operation
+  - New minimal output format: `[Ticket: X | Topic: Y]`
+  - Hook simplified from 229 to 99 lines of code (-130 lines, 56.8% reduction)
+
+### Improved
+- **Deterministic Parsing** - Commands now parse predictably with strict format requirements
+  - `#ticket:` must appear at start of message
+  - `#topic:` can appear anywhere in message after `#ticket:`
+  - Both commands can be combined: `#ticket: JIRA-1234 #topic: feat: Adding feature`
+  - No more false positives from ticket patterns in conversation
+
+### Updated
+- **Documentation** - All docs updated to reflect new command format
+  - README.md: Updated Quick Start section with new syntax
+  - CLAUDE.md: Updated Data Collection section with new commands
+  - docs/features/session-analytics.md: Comprehensive guide to new format
+  - docs/quick-start.md: Updated hook descriptions
+
+### Fixed
+- **Test Suite** - Updated 4 tests to match new deterministic format
+  - All 60 tests passing with new command structure
+  - Better test coverage for combined commands
+  - Tests validate both `#ticket:` only and `#topic:` only scenarios
+
+### Migration Guide
+**For users upgrading from 1.2.x:**
+
+Old format (deprecated):
+```
+ticket: JIRA-1234
+summary: Fixing authentication bug
+```
+
+New format (required):
+```
+#ticket: JIRA-1234
+#topic: fix: Fixing authentication bug
+```
+
+**Key differences:**
+- Add `#` prefix to commands
+- Change `summary:` to `#topic:`
+- No automatic ticket detection (must use explicit `#ticket:` command)
+- Supports conventional commit prefixes in topics: `feat:`, `fix:`, `refactor:`, etc.
+
 ## [1.2.1] - 2025-11-15
 
 ### Fixed

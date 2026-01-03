@@ -344,15 +344,15 @@ setup() {
   grep -q 'rm -f "$start_context_file"' hooks/session-end/session-end.sh
 }
 
-@test "user-prompt-submit hook handles ticket: command" {
-  # Test that the hook detects and processes ticket: commands
-  grep -q 'ticket:' hooks/user-prompt-submit/user-prompt-submit.sh
+@test "user-prompt-submit hook handles #ticket: command" {
+  # Test that the hook detects and processes #ticket: commands
+  grep -q '#ticket:' hooks/user-prompt-submit/user-prompt-submit.sh
   grep -q 'ticket_number' hooks/user-prompt-submit/user-prompt-submit.sh
 }
 
-@test "user-prompt-submit hook handles summary: command" {
-  # Test that the hook detects and processes summary: commands
-  grep -q 'summary:' hooks/user-prompt-submit/user-prompt-submit.sh
+@test "user-prompt-submit hook handles #topic: command" {
+  # Test that the hook detects and processes #topic: commands
+  grep -q '#topic:' hooks/user-prompt-submit/user-prompt-submit.sh
   grep -q '.summary' hooks/user-prompt-submit/user-prompt-submit.sh
 }
 
@@ -362,16 +362,16 @@ setup() {
   grep -q '.summary' hooks/session-end/session-end.sh
 }
 
-@test "user-prompt-submit handles combined ticket and summary command" {
+@test "user-prompt-submit handles combined #ticket and #topic command" {
   # Create a temporary log directory and session context
   temp_log_dir=$(mktemp -d)
   session_id="test-session-$$"
 
-  # Create input JSON with combined command (ticket first)
+  # Create input JSON with combined command
   input_json=$(cat <<EOF
 {
   "session_id": "$session_id",
-  "prompt": "ticket: JIRA-12345 summary: Fix authentication bug",
+  "prompt": "#ticket: JIRA-12345 #topic: fix: Fix authentication bug",
   "cwd": "$PWD"
 }
 EOF
@@ -385,31 +385,31 @@ EOF
     # Run the hook
     echo "$input_json" | bash hooks/user-prompt-submit/user-prompt-submit.sh
 
-    # Check that both ticket and summary were stored
+    # Check that both ticket and topic were stored
     context_file="$temp_log_dir/.claude/session-logs/.session-start-${session_id}"
     [ -f "$context_file" ]
 
     ticket=$(jq -r '.ticket_number // ""' "$context_file")
-    summary=$(jq -r '.summary // ""' "$context_file")
+    topic=$(jq -r '.summary // ""' "$context_file")
 
     [ "$ticket" = "JIRA-12345" ]
-    [ "$summary" = "Fix authentication bug" ]
+    [ "$topic" = "fix: Fix authentication bug" ]
   )
 
   # Cleanup
   rm -rf "$temp_log_dir"
 }
 
-@test "user-prompt-submit handles reverse order (summary then ticket)" {
-  # Test that summary: first, ticket: second also works
+@test "user-prompt-submit handles #ticket only" {
+  # Test that #ticket: command works without #topic:
   temp_log_dir=$(mktemp -d)
-  session_id="test-reverse-$$"
+  session_id="test-ticket-only-$$"
 
-  # Create input JSON with summary first, ticket second
+  # Create input JSON with ticket only
   input_json=$(cat <<EOF
 {
   "session_id": "$session_id",
-  "prompt": "summary: Refactoring the authentication module ticket: PROJ-999",
+  "prompt": "#ticket: PROJ-999",
   "cwd": "$PWD"
 }
 EOF
@@ -423,15 +423,47 @@ EOF
     # Run the hook
     echo "$input_json" | bash hooks/user-prompt-submit/user-prompt-submit.sh
 
-    # Check that both ticket and summary were stored correctly
+    # Check that ticket was stored
     context_file="$temp_log_dir/.claude/session-logs/.session-start-${session_id}"
     [ -f "$context_file" ]
 
     ticket=$(jq -r '.ticket_number // ""' "$context_file")
-    summary=$(jq -r '.summary // ""' "$context_file")
-
     [ "$ticket" = "PROJ-999" ]
-    [ "$summary" = "Refactoring the authentication module" ]
+  )
+
+  # Cleanup
+  rm -rf "$temp_log_dir"
+}
+
+@test "user-prompt-submit handles #topic only" {
+  # Test that #topic: command works without #ticket:
+  temp_log_dir=$(mktemp -d)
+  session_id="test-topic-only-$$"
+
+  # Create input JSON with topic only
+  input_json=$(cat <<EOF
+{
+  "session_id": "$session_id",
+  "prompt": "#topic: feat: Refactoring the authentication module",
+  "cwd": "$PWD"
+}
+EOF
+)
+
+  # Override log directory for this test
+  (
+    export HOME="$temp_log_dir"
+    mkdir -p "$temp_log_dir/.claude/session-logs"
+
+    # Run the hook
+    echo "$input_json" | bash hooks/user-prompt-submit/user-prompt-submit.sh
+
+    # Check that topic was stored
+    context_file="$temp_log_dir/.claude/session-logs/.session-start-${session_id}"
+    [ -f "$context_file" ]
+
+    topic=$(jq -r '.summary // ""' "$context_file")
+    [ "$topic" = "feat: Refactoring the authentication module" ]
   )
 
   # Cleanup

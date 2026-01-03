@@ -44,41 +44,36 @@ That's it! Hooks activate automatically when the plugin is enabled.
 
 ---
 
-## Quick Start: Ticket Tracking
+## Quick Start: Session Tracking
 
-Track which tickets/issues you work on in each session:
+Track your work with structured commands at the start of your message:
 
-**Automatic (easiest):** Just mention the ticket in your first message:
+### Track Tickets
+Use `#ticket:` to log issue/ticket numbers:
 ```
-Working on JIRA-1234 - fixing the login bug
-```
-
-**Manual:** Use the `ticket:` command in your message:
-```
-ticket: JIRA-1234          # Set one ticket
-ticket: JIRA-1234 GH-567   # Set multiple tickets
-ticket: JIRA-9999          # Add another ticket later
+#ticket: JIRA-1234
+#ticket: JIRA-1234 GH-567   # Multiple tickets
+#ticket: ABC-999            # Add more later
 ```
 
-All tickets are logged to the CSV for easy reporting:
+### Describe Your Work
+Use `#topic:` to describe what you're working on:
+```
+#topic: feat: Adding user authentication
+#topic: fix: Resolving checkout bug
+#topic: refactor: Optimizing database queries
+```
+
+### Combine Both
+Set ticket and topic together:
+```
+#ticket: JIRA-1234 #topic: feat: Adding dark mode to dashboard
+```
+
+All data is logged to CSV for easy reporting:
 ```bash
 grep JIRA-1234 ~/.claude/session-logs/sessions.csv
 ```
-
----
-
-## Quick Start: Session Summaries
-
-Describe what you're working on for better session tracking:
-
-**Use the `summary:` command in your message:**
-```
-summary: Refactoring authentication module
-summary: Adding dark mode to dashboard
-summary: Bug fix for checkout flow
-```
-
-The summary is saved to the CSV for easy reference and reporting. You can update it anytime during the session.
 
 ---
 

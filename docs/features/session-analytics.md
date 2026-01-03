@@ -12,62 +12,58 @@ All data is saved to `~/.claude/session-logs/sessions.csv` for easy analysis.
 
 ## Setting Ticket Numbers
 
-To associate sessions with specific tickets or issues, you have two options:
-
-### Option 1: Automatic Detection (Recommended)
-
-Simply mention the ticket number in your first message and it will be automatically detected:
+Use the `#ticket:` command at the start of your message to associate sessions with specific tickets or issues:
 
 ```
-Working on JIRA-1234 - need to fix the login bug
-```
-
-Supported patterns: `JIRA-123`, `GH-456`, `PROJ-789`, `#123`, etc.
-
-### Option 2: ticket: Command
-
-Use the `ticket:` command in your message to explicitly set one or more ticket numbers:
-
-```
-ticket: JIRA-1234
+#ticket: JIRA-1234
 ```
 
 You can add multiple tickets in a single command:
 
 ```
-ticket: JIRA-1234 JIRA-5678
+#ticket: JIRA-1234 GH-567
 ```
 
 Or add tickets incrementally throughout the session:
 
 ```
-ticket: JIRA-1234
+#ticket: JIRA-1234
 # ... work on first ticket ...
-ticket: JIRA-5678
+#ticket: JIRA-5678
 # ... work on second ticket ...
 ```
 
 All tickets will be logged as a space-separated list: `JIRA-1234 JIRA-5678`
 
-## Setting Session Summaries
+## Setting Session Topics
 
-Use the `summary:` command in your message to describe what you're working on:
-
-```
-summary: Refactoring authentication module
-```
-
-You can update the summary at any time during the session:
+Use the `#topic:` command at the start of your message to describe what you're working on:
 
 ```
-summary: Refactoring authentication module
+#topic: feat: Refactoring authentication module
+#topic: fix: Resolving login bug
+#topic: refactor: Optimizing database queries
+```
+
+The topic supports conventional commit message prefixes (feat:, fix:, refactor:, docs:, test:, etc.) for consistency.
+
+You can update the topic at any time during the session:
+
+```
+#topic: feat: Refactoring authentication module
 # ... work on refactoring ...
-summary: Added OAuth support to authentication module
+#topic: feat: Added OAuth support to authentication module
 ```
 
-The most recent summary will be saved to the CSV. If no summary is set via the `summary:` command, the plugin will attempt to extract the summary from Claude's session metadata (if available), otherwise it will show "No summary".
+**Pro tip**: Set the topic early in your session for better tracking and reporting.
 
-**Pro tip**: Set the summary early in your session for better tracking and reporting.
+## Combining Commands
+
+You can set both ticket and topic in a single message:
+
+```
+#ticket: JIRA-1234 #topic: feat: Adding dark mode support
+```
 
 ## What Gets Tracked
 
