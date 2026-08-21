@@ -120,7 +120,7 @@ The cost calculation uses the detected model from the session transcript and app
 Example pricing (Sonnet 4.5 - January 2025):
 - Input: $3.00/million, Output: $15.00/million, Cache read: $0.30/million, Cache write: $3.75/million
 
-To update pricing or add new models, edit `config/pricing.json`. See [Configuration](../configuration/README.md) for details.
+To update pricing or add new models, edit `config/pricing.json`. See [Configuration](../configuration/overview.md) for details.
 
 ## Session End Reasons
 
