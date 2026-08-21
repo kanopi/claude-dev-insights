@@ -1,6 +1,6 @@
 # Claude Dev Insights
 
-[![tests](https://github.com/kanopi/claude-dev-insights/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/kanopi/claude-dev-insights/actions/workflows/test.yml?query=branch%3Amain)
+[![tests](https://dl.circleci.com/status-badge/img/gh/kanopi/claude-dev-insights/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/kanopi/claude-dev-insights/tree/main)
 [![last commit](https://img.shields.io/github/last-commit/kanopi/claude-dev-insights)](https://github.com/kanopi/claude-dev-insights/commits)
 [![release](https://img.shields.io/github/v/release/kanopi/claude-dev-insights)](https://github.com/kanopi/claude-dev-insights/releases/latest)
 ![project is maintained](https://img.shields.io/maintenance/yes/2025.svg)

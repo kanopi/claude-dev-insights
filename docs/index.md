@@ -42,7 +42,7 @@ Every session logs to `~/.claude/session-logs/sessions.csv` with:
 - **Context**: Git branch, Claude Code version, permission mode
 - **Environment**: CMS type, environment type, dependencies
 
-[View all data fields →](features/session-analytics.md#csv-columns)
+[View all data fields →](features/session-analytics.md#csv-columns-29-fields)
 
 ---
 

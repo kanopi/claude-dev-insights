@@ -193,8 +193,8 @@ setup() {
   [ -f ".github/workflows/deploy-docs.yml" ]
 }
 
-@test "test workflow exists" {
-  [ -f ".github/workflows/test.yml" ]
+@test "circleci config exists" {
+  [ -f ".circleci/config.yml" ]
 }
 
 @test "workflows are valid YAML" {
