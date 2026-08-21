@@ -1,0 +1,352 @@
+version: 2.1
+
+# Ported from .github/workflows/test.yml (now removed) to reduce GitHub
+# Actions minute usage. The eight Actions jobs are consolidated into two
+# CircleCI jobs so each push spins up two containers instead of eight.
+#
+# Still on GitHub Actions (deliberately):
+#   - deploy-docs.yml: GitHub Pages OIDC deploy only works from Actions;
+#     path-filtered to docs changes so it rarely runs.
+
+jobs:
+  tests-and-validation:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: small
+    steps:
+      - checkout
+
+      - run:
+          name: Install BATS and jq
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y bats jq
+
+      - run:
+          name: Install PyYAML
+          command: pip install pyyaml
+
+      - run:
+          name: Run BATS tests
+          command: bats tests/test-plugin.bats
+
+      - run:
+          name: Check hook scripts are executable
+          command: |
+            errors=0
+            for script in hooks/*/*.sh; do
+              if [ -f "$script" ]; then
+                echo "Checking $script..."
+                if [ ! -x "$script" ]; then
+                  echo "❌ $script is not executable"
+                  errors=$((errors + 1))
+                fi
+
+                # Check shebang
+                if ! head -n 1 "$script" | grep -q "^#!/"; then
+                  echo "❌ $script missing shebang"
+                  errors=$((errors + 1))
+                fi
+              fi
+            done
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "Found $errors hook script errors"
+              exit 1
+            else
+              echo "✅ All hook scripts are valid"
+            fi
+
+      - run:
+          name: Validate hook scripts syntax
+          command: |
+            errors=0
+            for script in hooks/*/*.sh; do
+              if [ -f "$script" ]; then
+                echo "Checking syntax: $script..."
+                if ! bash -n "$script"; then
+                  echo "❌ Syntax error in $script"
+                  errors=$((errors + 1))
+                fi
+              fi
+            done
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "Found $errors syntax errors"
+              exit 1
+            else
+              echo "✅ All hook scripts have valid syntax"
+            fi
+
+      - run:
+          name: Validate JSON configuration files
+          command: |
+            errors=0
+            for config in config/*.json; do
+              if [ -f "$config" ]; then
+                echo "Validating $config..."
+                if ! jq empty "$config"; then
+                  echo "❌ Invalid JSON in $config"
+                  errors=$((errors + 1))
+                else
+                  echo "✅ $config is valid JSON"
+                fi
+              fi
+            done
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "Found $errors configuration errors"
+              exit 1
+            else
+              echo "✅ All configuration files are valid"
+            fi
+
+      - run:
+          name: Validate hooks.json structure
+          command: |
+            echo "Validating hooks.json structure..."
+            if ! jq -e '.hooks.SessionStart' hooks/hooks.json > /dev/null; then
+              echo "❌ Missing SessionStart hook definition"
+              exit 1
+            fi
+            if ! jq -e '.hooks.SessionEnd' hooks/hooks.json > /dev/null; then
+              echo "❌ Missing SessionEnd hook definition"
+              exit 1
+            fi
+            if ! jq -e '.hooks.UserPromptSubmit' hooks/hooks.json > /dev/null; then
+              echo "❌ Missing UserPromptSubmit hook definition"
+              exit 1
+            fi
+            echo "✅ hooks.json structure is valid"
+
+      - run:
+          name: Check CSV has 29 fields
+          command: |
+            echo "Checking CSV field count in session-end.sh..."
+
+            # Extract the header line
+            header=$(grep -A1 'echo "timestamp,session_id' hooks/session-end/session-end.sh | tr -d '\n' | tr -d ' ')
+
+            # Count commas (fields = commas + 1)
+            comma_count=$(echo "$header" | tr -cd ',' | wc -c)
+            field_count=$((comma_count + 1))
+
+            echo "Found $field_count CSV fields"
+
+            if [ "$field_count" -ne 29 ]; then
+              echo "❌ Expected 29 CSV fields, found $field_count"
+              exit 1
+            fi
+
+            echo "✅ CSV has correct number of fields (29)"
+
+      - run:
+          name: Check summary is 6th column
+          command: |
+            echo "Checking summary column position..."
+
+            # Check that summary appears after project and before cms_type
+            if ! grep -q "project,summary,cms_type" hooks/session-end/session-end.sh; then
+              echo "❌ Summary is not in the 6th position (after project, before cms_type)"
+              exit 1
+            fi
+
+            echo "✅ Summary is correctly positioned as 6th column"
+
+      - run:
+          name: Check documentation matches implementation
+          command: |
+            echo "Checking documentation consistency..."
+
+            # Check README mentions 29 fields
+            if ! grep -q "29 fields" README.md; then
+              echo "❌ README doesn't mention 29 fields"
+              exit 1
+            fi
+
+            # Check session-analytics docs mentions 29 fields
+            if ! grep -q "29 fields" docs/features/session-analytics.md; then
+              echo "❌ session-analytics.md doesn't mention 29 fields"
+              exit 1
+            fi
+
+            echo "✅ Documentation is consistent with implementation"
+
+      - run:
+          name: Scan for hardcoded secrets
+          command: |
+            # Check for potential hardcoded secrets
+            if grep -ri "password\s*=\|api_key\s*=\|secret\s*=" hooks/*.sh config/*.json | grep -v "example\|placeholder\|TODO\|SESSION_BUDGET"; then
+              echo "❌ Potential hardcoded secrets found"
+              exit 1
+            else
+              echo "✅ No hardcoded secrets detected"
+            fi
+
+      - run:
+          name: Check for merge conflict markers
+          # The conflict markers are built with printf because a literal
+          # run of < characters trips CircleCI's << pipeline-parameter parser.
+          command: |
+            open_marker=$(printf '<%.0s' 1 2 3 4 5 6 7)
+            close_marker=$(printf '>%.0s' 1 2 3 4 5 6 7)
+            if grep -r "^$open_marker \|^=======$\|^$close_marker " hooks/ docs/ config/ 2>/dev/null; then
+              echo "❌ Found merge conflict markers"
+              exit 1
+            else
+              echo "✅ No merge conflict markers found"
+            fi
+
+      - run:
+          name: Check security patterns include .env
+          command: |
+            if ! jq -e '.blocked_files | map(select(. == ".env"))' config/security-patterns.json > /dev/null; then
+              echo "❌ Security patterns should include .env files"
+              exit 1
+            else
+              echo "✅ Security patterns include .env protection"
+            fi
+
+      - run:
+          name: Validate JSON and YAML files
+          command: |
+            jq empty .claude-plugin/plugin.json && echo "✅ plugin.json is valid"
+            jq empty hooks/hooks.json && echo "✅ hooks.json is valid"
+
+            for config in config/*.json; do
+              jq empty "$config" && echo "✅ $(basename $config) is valid"
+            done
+
+            python -c "import yaml; yaml.safe_load(open('mkdocs.yml'))" && echo "✅ mkdocs.yml is valid"
+
+            python -c "import yaml; yaml.safe_load(open('.circleci/config.yml'))" && echo "✅ .circleci/config.yml is valid"
+
+            for workflow in .github/workflows/*.yml; do
+              echo "Validating $workflow..."
+              python -c "import yaml; yaml.safe_load(open('$workflow'))" && echo "✅ $(basename $workflow) is valid"
+            done
+
+      - run:
+          name: Check pricing uses pricing.json
+          command: |
+            echo "Checking cost calculation uses pricing.json..."
+            errors=0
+
+            # Check that pricing.json exists
+            if [ ! -f "config/pricing.json" ]; then
+              echo "❌ config/pricing.json is missing"
+              errors=$((errors + 1))
+            fi
+
+            # Check that session-end references pricing.json
+            if ! grep -q "pricing.json" hooks/session-end/session-end.sh; then
+              echo "❌ session-end.sh doesn't reference pricing.json"
+              errors=$((errors + 1))
+            fi
+
+            # Check that pricing is loaded from variables, not hardcoded
+            for var in input_price output_price cache_read_price cache_write_price; do
+              if ! grep -q "$var=" hooks/session-end/session-end.sh; then
+                echo "❌ session-end.sh doesn't use $var variable"
+                errors=$((errors + 1))
+              fi
+            done
+
+            # Check that pricing.json has correct structure
+            if ! jq -e '.models' config/pricing.json > /dev/null; then
+              echo "❌ pricing.json missing .models"
+              errors=$((errors + 1))
+            fi
+
+            if ! jq -e '.default' config/pricing.json > /dev/null; then
+              echo "❌ pricing.json missing .default"
+              errors=$((errors + 1))
+            fi
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "Found $errors pricing errors"
+              exit 1
+            else
+              echo "✅ Cost calculations use pricing.json correctly"
+            fi
+
+  documentation-build:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: small
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - pip-cache-v1-zensical
+
+      - run:
+          name: Install Zensical
+          command: |
+            python -m pip install --upgrade pip
+            pip install zensical
+
+      - save_cache:
+          key: pip-cache-v1-zensical
+          paths:
+            - ~/.cache/pip
+
+      - run:
+          name: Build documentation
+          command: zensical build --strict
+
+      - run:
+          name: Check for broken internal links
+          command: |
+            echo "Checking for broken internal links in documentation..."
+            errors=0
+
+            # Find all markdown files and extract internal links
+            for doc in docs/**/*.md; do
+              if [ -f "$doc" ]; then
+                # Extract markdown links [text](path)
+                grep -o '\[.*\]([^)]*\.md[^)]*)' "$doc" 2>/dev/null | while read -r link; do
+                  # Extract just the path
+                  path=$(echo "$link" | sed 's/.*(\([^)]*\))/\1/' | cut -d'#' -f1)
+
+                  # Skip external links
+                  if [[ "$path" =~ ^http ]]; then
+                    continue
+                  fi
+
+                  # Check if file exists relative to docs/
+                  if [ -n "$path" ]; then
+                    # Handle ../ paths
+                    check_path="docs/$path"
+                    if [[ "$path" == ../* ]]; then
+                      dir=$(dirname "$doc")
+                      check_path="$dir/$path"
+                    fi
+
+                    if [ ! -f "$check_path" ]; then
+                      echo "❌ Broken link in $doc: $path"
+                      errors=$((errors + 1))
+                    fi
+                  fi
+                done
+              fi
+            done
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "Found $errors broken links"
+              exit 1
+            else
+              echo "✅ No broken internal links found"
+            fi
+
+workflows:
+  test:
+    jobs:
+      - tests-and-validation
+      - documentation-build
